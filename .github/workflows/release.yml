@@ -1,18 +1,22 @@
-name: Build release archives
+name: Publish release
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version without v prefix (for example 0.1.0-dev.1)'
+        description: 'Version without v prefix (for example 0.1.0-dev.3)'
         required: true
         type: string
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: release-${{ inputs.version }}
+  cancel-in-progress: false
 
 jobs:
-  archives:
+  publish:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -23,15 +27,8 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
-      - run: make check generate-check
-      - name: Build archives
+      - name: Build, verify and publish release
         env:
+          GH_TOKEN: ${{ github.token }}
           FQL_RELEASE_VERSION: ${{ inputs.version }}
-        run: |
-          go run ./tools/release --version "$FQL_RELEASE_VERSION"
-          python3 tests/release/verify_archives.py --version "$FQL_RELEASE_VERSION"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: fql-cli
-          path: dist/
-          if-no-files-found: error
+        run: go run ./tools/publish --version "$FQL_RELEASE_VERSION"

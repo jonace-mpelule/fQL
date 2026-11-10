@@ -4,7 +4,7 @@ GO ?= go
 VERSION ?= dev
 LDFLAGS := -X main.version=$(VERSION)
 
-.PHONY: help setup build run install fmt fmt-check vet test test-race coverage check clean generate generate-check dart-check emulator-test integration-test dist setup-integration check-all schema-format schema-format-check audit-test
+.PHONY: help setup build run install fmt fmt-check vet test test-race coverage check clean generate generate-check dart-check emulator-test integration-test dist setup-integration check-all schema-format schema-format-check audit-test release release-check installer-test
 
 help: ## Show available development commands
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -66,7 +66,7 @@ emulator-test: generate-check ## Test generated Security Rules (requires Node 24
 integration-test: generate-check ## Test Flutter web SDK integration against emulators
 	npm run test:integration
 
-dist: ## Build checksummed cross-platform CLI archives (set VERSION=0.1.0-dev.1)
+dist: ## Build checksummed cross-platform CLI archives (set VERSION=0.1.0-dev.3)
 	$(GO) run ./tools/release --version '$(VERSION)'
 	python3 tests/release/verify_archives.py --version '$(VERSION)'
 
@@ -88,3 +88,14 @@ schema-format-check: ## Check schema validity and canonical formatting without w
 
 audit-test: generate-check ## Verify read-only audit against a local emulator
 	npm run test:audit
+
+installer-test: ## Test installer platform selection, integrity checks, and safe replacement
+	python3 -m unittest discover -s tests/install -p '*_test.py'
+
+release: ## Verify, build and publish GitHub Release assets (set VERSION=0.1.0-dev.3; needs gh auth)
+	$(GO) run ./tools/publish --version '$(VERSION)'
+
+release-check: installer-test ## Check only release tooling and executable packaging prerequisites
+	$(GO) test ./tests/release
+	$(GO) vet ./internal/release ./tools/release ./tools/publish
+	sh -n install.sh

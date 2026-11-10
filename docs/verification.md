@@ -56,9 +56,9 @@ The browser tests explicitly register Flutter's web plugins because `flutter tes
 - GitHub Actions workflows are configured but have not been executed by a hosted runner in this local session.
 - Android/iOS SDK behavior, native persistence, app lifecycle, and device UI have not been verified. Web cache tests cover the active session; durable persistence across browser restarts was not tested. The current runnable example targets desktop browsers; native project/host configuration is separate work.
 - Cross-built Linux/Windows archives have been inspected; native execution was smoke-tested on macOS arm64 only. Hosted OS jobs provide additional checks once run.
-- No production rules/indexes were deployed and no release was published. Production index readiness is not proved by emulator queries.
+- No production rules/indexes were deployed. Release publishing and checksum-verified installers are documented in the README; release metadata identifies the published versions. Production index readiness is not proved by emulator queries.
 - No existing application data was migrated. Incompatible documents fail decoding, as specified.
-- Archive checksums establish integrity. Release signing and automatic publication are not implemented or claimed.
+- Archive checksums establish integrity. Release signing is not implemented. Publication is explicit through `make release` or the manual publishing workflow.
 - Generated file replacement is staged with rollback on ordinary errors and guarded by a generation lock; a process crash is not a multi-file atomic commit. Inspect artifacts/lock metadata after an interrupted generation.
 
 The [enforcement matrix](enforcement.md) describes which guarantees belong to clients, rules, and privileged backend integrations.
