@@ -55,7 +55,17 @@ func lookup(tag string) (githubRelease, bool, error) {
 	b, e := output("gh", "api", "repos/"+release.Repository+"/releases/tags/"+tag)
 	if e != nil {
 		if strings.Contains(e.Error(), "HTTP 404") {
-			return r, false, nil
+			// The tag endpoint can omit unpublished drafts whose Git tag does not exist yet.
+			query := fmt.Sprintf(".[] | select(.tag_name == %q)", tag)
+			b, err := output("gh", "api", "--paginate", "repos/"+release.Repository+"/releases?per_page=100", "--jq", query)
+			if err != nil {
+				return r, false, err
+			}
+			if b == "" {
+				return r, false, nil
+			}
+			err = json.Unmarshal([]byte(b), &r)
+			return r, true, err
 		}
 		return r, false, e
 	}
