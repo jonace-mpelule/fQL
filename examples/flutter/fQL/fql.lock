@@ -1,0 +1,1052 @@
+{
+  "baseline": {
+    "Enums": [
+      {
+        "Name": "ConversationState",
+        "Values": [
+          "open",
+          "archived"
+        ],
+        "Position": {
+          "File": "",
+          "Line": 0,
+          "Column": 0,
+          "Offset": 0,
+          "EndOffset": 0
+        }
+      }
+    ],
+    "Objects": [
+      {
+        "Name": "ConversationInfo",
+        "Fields": [
+          {
+            "Name": "title",
+            "Type": "string",
+            "Element": "",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": false,
+            "Nullable": false,
+            "Immutable": false,
+            "MinLength": 1,
+            "MaxLength": 100,
+            "Min": null,
+            "Max": null,
+            "Default": null,
+            "Allowed": null
+          },
+          {
+            "Name": "description",
+            "Type": "string",
+            "Element": "",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": true,
+            "Nullable": true,
+            "Immutable": false,
+            "MinLength": null,
+            "MaxLength": 500,
+            "Min": null,
+            "Max": null,
+            "Default": null,
+            "Allowed": null
+          }
+        ],
+        "Position": {
+          "File": "",
+          "Line": 0,
+          "Column": 0,
+          "Offset": 0,
+          "EndOffset": 0
+        }
+      }
+    ],
+    "Version": "0.1",
+    "Models": [
+      {
+        "Name": "Conversation",
+        "Collection": "conversations",
+        "Position": {
+          "File": "",
+          "Line": 0,
+          "Column": 0,
+          "Offset": 0,
+          "EndOffset": 0
+        },
+        "Fields": [
+          {
+            "Name": "ownerId",
+            "Type": "string",
+            "Element": "",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": false,
+            "Nullable": false,
+            "Immutable": true,
+            "MinLength": null,
+            "MaxLength": null,
+            "Min": null,
+            "Max": null,
+            "Default": null,
+            "Allowed": null
+          },
+          {
+            "Name": "info",
+            "Type": "ConversationInfo",
+            "Element": "",
+            "EnumValues": null,
+            "ObjectFields": [
+              {
+                "Name": "title",
+                "Type": "string",
+                "Element": "",
+                "EnumValues": null,
+                "ObjectFields": [],
+                "ElementField": null,
+                "MinItems": null,
+                "MaxItems": null,
+                "Server": "",
+                "Position": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0,
+                  "Offset": 0,
+                  "EndOffset": 0
+                },
+                "Modifiers": null,
+                "Optional": false,
+                "Nullable": false,
+                "Immutable": false,
+                "MinLength": 1,
+                "MaxLength": 100,
+                "Min": null,
+                "Max": null,
+                "Default": null,
+                "Allowed": null
+              },
+              {
+                "Name": "description",
+                "Type": "string",
+                "Element": "",
+                "EnumValues": null,
+                "ObjectFields": [],
+                "ElementField": null,
+                "MinItems": null,
+                "MaxItems": null,
+                "Server": "",
+                "Position": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0,
+                  "Offset": 0,
+                  "EndOffset": 0
+                },
+                "Modifiers": null,
+                "Optional": true,
+                "Nullable": true,
+                "Immutable": false,
+                "MinLength": null,
+                "MaxLength": 500,
+                "Min": null,
+                "Max": null,
+                "Default": null,
+                "Allowed": null
+              }
+            ],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": false,
+            "Nullable": false,
+            "Immutable": false,
+            "MinLength": null,
+            "MaxLength": null,
+            "Min": null,
+            "Max": null,
+            "Default": null,
+            "Allowed": null
+          },
+          {
+            "Name": "state",
+            "Type": "ConversationState",
+            "Element": "",
+            "EnumValues": [
+              "open",
+              "archived"
+            ],
+            "ObjectFields": [],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": false,
+            "Nullable": false,
+            "Immutable": false,
+            "MinLength": null,
+            "MaxLength": null,
+            "Min": null,
+            "Max": null,
+            "Default": {
+              "Kind": "string",
+              "Text": "open",
+              "Position": {
+                "File": "",
+                "Line": 0,
+                "Column": 0,
+                "Offset": 0,
+                "EndOffset": 0
+              }
+            },
+            "Allowed": null
+          },
+          {
+            "Name": "tags",
+            "Type": "list",
+            "Element": "string",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": {
+              "Name": "tags",
+              "Type": "string",
+              "Element": "",
+              "EnumValues": null,
+              "ObjectFields": [],
+              "ElementField": null,
+              "MinItems": null,
+              "MaxItems": null,
+              "Server": "",
+              "Position": {
+                "File": "",
+                "Line": 0,
+                "Column": 0,
+                "Offset": 0,
+                "EndOffset": 0
+              },
+              "Modifiers": null,
+              "Optional": false,
+              "Nullable": false,
+              "Immutable": false,
+              "MinLength": null,
+              "MaxLength": null,
+              "Min": null,
+              "Max": null,
+              "Default": null,
+              "Allowed": null
+            },
+            "MinItems": null,
+            "MaxItems": 8,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": true,
+            "Nullable": false,
+            "Immutable": false,
+            "MinLength": null,
+            "MaxLength": null,
+            "Min": null,
+            "Max": null,
+            "Default": null,
+            "Allowed": null
+          },
+          {
+            "Name": "history",
+            "Type": "list",
+            "Element": "ConversationInfo",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": {
+              "Name": "history",
+              "Type": "ConversationInfo",
+              "Element": "",
+              "EnumValues": null,
+              "ObjectFields": [
+                {
+                  "Name": "title",
+                  "Type": "string",
+                  "Element": "",
+                  "EnumValues": null,
+                  "ObjectFields": [],
+                  "ElementField": null,
+                  "MinItems": null,
+                  "MaxItems": null,
+                  "Server": "",
+                  "Position": {
+                    "File": "",
+                    "Line": 0,
+                    "Column": 0,
+                    "Offset": 0,
+                    "EndOffset": 0
+                  },
+                  "Modifiers": null,
+                  "Optional": false,
+                  "Nullable": false,
+                  "Immutable": false,
+                  "MinLength": 1,
+                  "MaxLength": 100,
+                  "Min": null,
+                  "Max": null,
+                  "Default": null,
+                  "Allowed": null
+                },
+                {
+                  "Name": "description",
+                  "Type": "string",
+                  "Element": "",
+                  "EnumValues": null,
+                  "ObjectFields": [],
+                  "ElementField": null,
+                  "MinItems": null,
+                  "MaxItems": null,
+                  "Server": "",
+                  "Position": {
+                    "File": "",
+                    "Line": 0,
+                    "Column": 0,
+                    "Offset": 0,
+                    "EndOffset": 0
+                  },
+                  "Modifiers": null,
+                  "Optional": true,
+                  "Nullable": true,
+                  "Immutable": false,
+                  "MinLength": null,
+                  "MaxLength": 500,
+                  "Min": null,
+                  "Max": null,
+                  "Default": null,
+                  "Allowed": null
+                }
+              ],
+              "ElementField": null,
+              "MinItems": null,
+              "MaxItems": null,
+              "Server": "",
+              "Position": {
+                "File": "",
+                "Line": 0,
+                "Column": 0,
+                "Offset": 0,
+                "EndOffset": 0
+              },
+              "Modifiers": null,
+              "Optional": false,
+              "Nullable": false,
+              "Immutable": false,
+              "MinLength": null,
+              "MaxLength": null,
+              "Min": null,
+              "Max": null,
+              "Default": null,
+              "Allowed": null
+            },
+            "MinItems": null,
+            "MaxItems": 2,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": true,
+            "Nullable": false,
+            "Immutable": false,
+            "MinLength": null,
+            "MaxLength": null,
+            "Min": null,
+            "Max": null,
+            "Default": null,
+            "Allowed": null
+          },
+          {
+            "Name": "count",
+            "Type": "int",
+            "Element": "",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": false,
+            "Nullable": false,
+            "Immutable": false,
+            "MinLength": null,
+            "MaxLength": null,
+            "Min": 0,
+            "Max": null,
+            "Default": {
+              "Kind": "number",
+              "Text": "0",
+              "Position": {
+                "File": "",
+                "Line": 0,
+                "Column": 0,
+                "Offset": 0,
+                "EndOffset": 0
+              }
+            },
+            "Allowed": null
+          },
+          {
+            "Name": "createdAt",
+            "Type": "timestamp",
+            "Element": "",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "serverCreated",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": false,
+            "Nullable": false,
+            "Immutable": true,
+            "MinLength": null,
+            "MaxLength": null,
+            "Min": null,
+            "Max": null,
+            "Default": null,
+            "Allowed": null
+          },
+          {
+            "Name": "updatedAt",
+            "Type": "timestamp",
+            "Element": "",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "serverUpdated",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": false,
+            "Nullable": false,
+            "Immutable": false,
+            "MinLength": null,
+            "MaxLength": null,
+            "Min": null,
+            "Max": null,
+            "Default": null,
+            "Allowed": null
+          }
+        ],
+        "Policies": [
+          {
+            "Operation": "create",
+            "Kind": "owner",
+            "Field": "ownerId",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            }
+          },
+          {
+            "Operation": "delete",
+            "Kind": "owner",
+            "Field": "ownerId",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            }
+          },
+          {
+            "Operation": "read",
+            "Kind": "owner",
+            "Field": "ownerId",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            }
+          },
+          {
+            "Operation": "update",
+            "Kind": "owner",
+            "Field": "ownerId",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            }
+          }
+        ],
+        "Indexes": null
+      },
+      {
+        "Name": "Message",
+        "Collection": "messages",
+        "Position": {
+          "File": "",
+          "Line": 0,
+          "Column": 0,
+          "Offset": 0,
+          "EndOffset": 0
+        },
+        "Fields": [
+          {
+            "Name": "ownerId",
+            "Type": "string",
+            "Element": "",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": false,
+            "Nullable": false,
+            "Immutable": true,
+            "MinLength": null,
+            "MaxLength": null,
+            "Min": null,
+            "Max": null,
+            "Default": null,
+            "Allowed": null
+          },
+          {
+            "Name": "body",
+            "Type": "string",
+            "Element": "",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": false,
+            "Nullable": false,
+            "Immutable": false,
+            "MinLength": 1,
+            "MaxLength": 4000,
+            "Min": null,
+            "Max": null,
+            "Default": null,
+            "Allowed": null
+          },
+          {
+            "Name": "createdAt",
+            "Type": "timestamp",
+            "Element": "",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": false,
+            "Nullable": false,
+            "Immutable": true,
+            "MinLength": null,
+            "MaxLength": null,
+            "Min": null,
+            "Max": null,
+            "Default": null,
+            "Allowed": null
+          },
+          {
+            "Name": "priority",
+            "Type": "int",
+            "Element": "",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": false,
+            "Nullable": false,
+            "Immutable": false,
+            "MinLength": null,
+            "MaxLength": null,
+            "Min": 0,
+            "Max": 10,
+            "Default": {
+              "Kind": "number",
+              "Text": "0",
+              "Position": {
+                "File": "",
+                "Line": 0,
+                "Column": 0,
+                "Offset": 0,
+                "EndOffset": 0
+              }
+            },
+            "Allowed": null
+          }
+        ],
+        "Policies": [
+          {
+            "Operation": "create",
+            "Kind": "owner",
+            "Field": "ownerId",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            }
+          },
+          {
+            "Operation": "delete",
+            "Kind": "owner",
+            "Field": "ownerId",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            }
+          },
+          {
+            "Operation": "read",
+            "Kind": "owner",
+            "Field": "ownerId",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            }
+          },
+          {
+            "Operation": "update",
+            "Kind": "owner",
+            "Field": "ownerId",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            }
+          }
+        ],
+        "Indexes": [
+          [
+            {
+              "Name": "ownerId",
+              "Direction": "asc"
+            },
+            {
+              "Name": "createdAt",
+              "Direction": "desc"
+            }
+          ]
+        ]
+      },
+      {
+        "Name": "User",
+        "Collection": "users",
+        "Position": {
+          "File": "",
+          "Line": 0,
+          "Column": 0,
+          "Offset": 0,
+          "EndOffset": 0
+        },
+        "Fields": [
+          {
+            "Name": "name",
+            "Type": "string",
+            "Element": "",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": false,
+            "Nullable": false,
+            "Immutable": false,
+            "MinLength": 1,
+            "MaxLength": 100,
+            "Min": null,
+            "Max": null,
+            "Default": null,
+            "Allowed": null
+          },
+          {
+            "Name": "dateOfBirth",
+            "Type": "date",
+            "Element": "",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": true,
+            "Nullable": false,
+            "Immutable": false,
+            "MinLength": null,
+            "MaxLength": null,
+            "Min": null,
+            "Max": null,
+            "Default": null,
+            "Allowed": null
+          },
+          {
+            "Name": "bio",
+            "Type": "string",
+            "Element": "",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": true,
+            "Nullable": true,
+            "Immutable": false,
+            "MinLength": null,
+            "MaxLength": 500,
+            "Min": null,
+            "Max": null,
+            "Default": null,
+            "Allowed": null
+          },
+          {
+            "Name": "active",
+            "Type": "bool",
+            "Element": "",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": false,
+            "Nullable": false,
+            "Immutable": false,
+            "MinLength": null,
+            "MaxLength": null,
+            "Min": null,
+            "Max": null,
+            "Default": {
+              "Kind": "true",
+              "Text": "true",
+              "Position": {
+                "File": "",
+                "Line": 0,
+                "Column": 0,
+                "Offset": 0,
+                "EndOffset": 0
+              }
+            },
+            "Allowed": null
+          },
+          {
+            "Name": "rating",
+            "Type": "float",
+            "Element": "",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": true,
+            "Nullable": false,
+            "Immutable": false,
+            "MinLength": null,
+            "MaxLength": null,
+            "Min": 0,
+            "Max": 5,
+            "Default": null,
+            "Allowed": null
+          },
+          {
+            "Name": "status",
+            "Type": "string",
+            "Element": "",
+            "EnumValues": null,
+            "ObjectFields": [],
+            "ElementField": null,
+            "MinItems": null,
+            "MaxItems": null,
+            "Server": "",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            },
+            "Modifiers": null,
+            "Optional": false,
+            "Nullable": false,
+            "Immutable": false,
+            "MinLength": null,
+            "MaxLength": null,
+            "Min": null,
+            "Max": null,
+            "Default": {
+              "Kind": "string",
+              "Text": "active",
+              "Position": {
+                "File": "",
+                "Line": 0,
+                "Column": 0,
+                "Offset": 0,
+                "EndOffset": 0
+              }
+            },
+            "Allowed": [
+              {
+                "Kind": "string",
+                "Text": "active",
+                "Position": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0,
+                  "Offset": 0,
+                  "EndOffset": 0
+                }
+              },
+              {
+                "Kind": "string",
+                "Text": "paused",
+                "Position": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0,
+                  "Offset": 0,
+                  "EndOffset": 0
+                }
+              }
+            ]
+          }
+        ],
+        "Policies": [
+          {
+            "Operation": "create",
+            "Kind": "owner",
+            "Field": "id",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            }
+          },
+          {
+            "Operation": "delete",
+            "Kind": "owner",
+            "Field": "id",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            }
+          },
+          {
+            "Operation": "read",
+            "Kind": "owner",
+            "Field": "id",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            }
+          },
+          {
+            "Operation": "update",
+            "Kind": "owner",
+            "Field": "id",
+            "Position": {
+              "File": "",
+              "Line": 0,
+              "Column": 0,
+              "Offset": 0,
+              "EndOffset": 0
+            }
+          }
+        ],
+        "Indexes": null
+      }
+    ]
+  },
+  "format": "2",
+  "compiler": "0.1.0-dev.2",
+  "schema": "7140e04000a5f6dcfd21c65a8cd99568e6fb18eaa74c8e91d7a45b782017d039",
+  "files": {
+    "firebase/generated/firestore.indexes.json": "3fc57c4556065d4dffbb1e8a1d25bc13a2a9bab6998a8cb8d4dbed6a4cedb5af",
+    "firebase/generated/firestore.rules": "67e82adb0b8f6fae1fe25c2a6ac800d838d063df6f45f36a50544b45d349a795",
+    "lib/data/fql/fql.dart": "77ea6e5a324d5cfe3ea88426dc77534befa653c1b6af3283b106aad35703e4c9"
+  }
+}
