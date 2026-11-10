@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: monthly
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+  - package-ecosystem: pub
+    directory: /examples/flutter
+    schedule:
+      interval: monthly
+  - package-ecosystem: pub
+    directory: /tests/dart
+    schedule:
+      interval: monthly
