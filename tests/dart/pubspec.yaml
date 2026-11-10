@@ -1,0 +1,22 @@
+name: fql_runtime_tests
+publish_to: none
+environment:
+  sdk: ">=3.11.0 <4.0.0"
+dependencies:
+  flutter:
+    sdk: flutter
+  fql_example:
+    path: ../../examples/flutter
+  cloud_firestore: ^7.1.0
+  firebase_core: ^5.1.0
+  firebase_auth: ^7.0.1
+  http: ^1.6.0
+  firebase_core_web: ^4.1.0
+  firebase_auth_web: ^6.3.2
+  cloud_firestore_web: ^5.8.0
+  flutter_web_plugins:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  fake_cloud_firestore: ^4.5.0

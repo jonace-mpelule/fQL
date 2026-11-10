@@ -1,0 +1,20 @@
+schema "0.1"
+
+model Defaults {
+  collection = "defaults"
+  fields {
+    title string.required().default("a\u0007$dollar\"").oneOf("a\u0007$dollar\"")
+    birthday date.required().default("2000-02-29").oneOf("2000-02-29")
+    moment timestamp.required().default("2026-01-01T00:00:00.123456Z").oneOf("2026-01-01T00:00:00.123456Z")
+    number float.required().default(1e-5).oneOf(0.00001)
+    nullable string.required().nullable().default(null)
+    flag bool.required().default(false)
+    optional int.optional().nullable().immutable()
+  }
+  access {
+    read = authenticated
+    create = authenticated
+    update = authenticated
+    delete = authenticated
+  }
+}
