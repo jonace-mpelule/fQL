@@ -1,0 +1,25 @@
+# Local configuration (already tracked files are unaffected).
+.env
+.env.*
+!.env.example
+
+# Build and verification output.
+/bin/
+/dist/
+/coverage/
+*.test
+
+# Editor and OS metadata.
+.DS_Store
+.idea/
+.vscode/
+
+# SDK and emulator artifacts.
+node_modules/
+.dart_tool/
+.flutter-plugins-dependencies
+build/
+*-debug.log
+*.log
+.fql-stage-*
+.generate.lock/
