@@ -9,11 +9,11 @@ import (
 	"crypto/sha256"
 	"flag"
 	"fmt"
+	"github.com/jonace-mpelule/fQL/internal/release"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"sort"
 	"strings"
@@ -30,8 +30,8 @@ func run() error {
 	version := flag.String("version", "", "release version without v prefix")
 	out := flag.String("output", "dist", "archive output directory")
 	flag.Parse()
-	if !regexp.MustCompile(`^0\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$`).MatchString(*version) || flag.NArg() != 0 {
-		return fmt.Errorf("supply --version, for example 0.1.0-dev.1")
+	if release.ValidateVersion(*version) != nil || flag.NArg() != 0 {
+		return fmt.Errorf("supply --version, for example 0.1.0-dev.3")
 	}
 	if _, e := os.Stat("go.mod"); e != nil {
 		return fmt.Errorf("run from the repository root")
@@ -113,6 +113,17 @@ func run() error {
 			return e
 		}
 	}
+	for _, name := range []string{"install.sh", "install.ps1"} {
+		b, e := os.ReadFile(name)
+		if e != nil {
+			return e
+		}
+		hash := sha256.Sum256(b)
+		sums[name] = fmt.Sprintf("%x", hash)
+		if e = os.WriteFile(filepath.Join(temp, name), b, 0644); e != nil {
+			return e
+		}
+	}
 	var names []string
 	for name := range sums {
 		names = append(names, name)
@@ -148,6 +159,6 @@ func run() error {
 			return closeErr
 		}
 	}
-	fmt.Printf("Created %d CLI archives and SHA256SUMS in %s\n", len(names), *out)
+	fmt.Printf("Created %d CLI archives and SHA256SUMS in %s\n", len(names)-2, *out)
 	return nil
 }

@@ -23,3 +23,7 @@ build/
 *.log
 .fql-stage-*
 .generate.lock/
+
+# Python verification caches.
+__pycache__/
+*.py[cod]
