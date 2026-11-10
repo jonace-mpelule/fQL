@@ -1,0 +1,19 @@
+schema "0.1"
+
+model User {
+  collection = "users"
+  fields {
+    name string.required().minLength(1).maxLength(100)
+    dateOfBirth date.optional()
+    bio string.optional().nullable().maxLength(500)
+    active bool.required().default(true)
+    rating float.optional().min(0).max(5)
+    status string.required().oneOf("active", "paused").default("active")
+  }
+  access {
+    read = owner(id)
+    create = owner(id)
+    update = owner(id)
+    delete = owner(id)
+  }
+}

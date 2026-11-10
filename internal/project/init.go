@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const DefaultConfig = `version = "0.1"
@@ -55,7 +56,18 @@ model Message {
 `
 
 // Init creates the initial files exclusively, rolling back its own files on failure.
-func Init(root string) error {
+func Init(root string) error { return InitTarget(root, "dart") }
+
+// InitTarget scaffolds one supported client target without overwriting files.
+func InitTarget(root, target string) error {
+	config := DefaultConfig
+	switch target {
+	case "dart":
+	case "typescript":
+		config = strings.ReplaceAll(strings.ReplaceAll(config, `target = "dart"`, `target = "typescript"`), "../lib/data/fql", "../src/data/fql")
+	default:
+		return fmt.Errorf("unsupported target %q; use dart or typescript", target)
+	}
 	abs, e := filepath.Abs(root)
 	if e != nil {
 		return e
@@ -67,7 +79,7 @@ func Init(root string) error {
 	if e != nil {
 		return e
 	}
-	files := []struct{ path, content string }{{"fQL/fql.config", DefaultConfig}, {"fQL/schemas/users.fQL", UserSchema}, {"fQL/schemas/messages.fQL", MessageSchema}}
+	files := []struct{ path, content string }{{"fQL/fql.config", config}, {"fQL/schemas/users.fQL", UserSchema}, {"fQL/schemas/messages.fQL", MessageSchema}}
 	for _, f := range files {
 		path := filepath.Join(root, filepath.FromSlash(f.path))
 		if e = SafePath(root, path); e != nil {

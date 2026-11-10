@@ -63,7 +63,17 @@ func Write(p project.Project, check bool) error {
 	if len(rules) > 250000 {
 		return fmt.Errorf("generated Security Rules exceed the supported 250000-byte budget; reduce the schema")
 	}
-	absolute := map[string][]byte{filepath.Join(p.Output, "fql.dart"): Dart(p.Schema), filepath.Join(p.Firebase, "firestore.rules"): rules, filepath.Join(p.Firebase, "firestore.indexes.json"): indexes}
+	clientName := "fql.dart"
+	var client []byte
+	switch p.Target {
+	case "typescript":
+		clientName, client = "fql.ts", TypeScript(p.Schema)
+	case "dart", "":
+		client = Dart(p.Schema)
+	default:
+		return fmt.Errorf("unsupported generator target %q", p.Target)
+	}
+	absolute := map[string][]byte{filepath.Join(p.Output, clientName): client, filepath.Join(p.Firebase, "firestore.rules"): rules, filepath.Join(p.Firebase, "firestore.indexes.json"): indexes}
 	files := map[string][]byte{}
 	baseline := evolve.Canonical(p.Schema)
 	next := manifest{Baseline: &baseline, Version: "2", Compiler: CompilerVersion, Schema: p.Fingerprint, Files: map[string]string{}}
@@ -103,7 +113,7 @@ func Write(p project.Project, check bool) error {
 			return fmt.Errorf("unsafe artifact path in lockfile")
 		}
 		base := filepath.Base(rel)
-		if base != "fql.dart" && base != "firestore.rules" && base != "firestore.indexes.json" {
+		if base != "fql.dart" && base != "fql.ts" && base != "firestore.rules" && base != "firestore.indexes.json" {
 			return fmt.Errorf("unrecognized artifact in lockfile")
 		}
 		path := filepath.Join(p.Root, filepath.FromSlash(rel))

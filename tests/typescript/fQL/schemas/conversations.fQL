@@ -1,0 +1,21 @@
+schema "0.1"
+
+model Conversation {
+  collection = "conversations"
+  fields {
+    ownerId string.required().immutable()
+    info ConversationInfo.required()
+    state ConversationState.required().default("open")
+    tags list<string>.optional().maxItems(8)
+    history list<ConversationInfo>.optional().maxItems(2)
+    count int.required().min(0).default(0)
+    createdAt timestamp.required().serverCreated()
+    updatedAt timestamp.required().serverUpdated()
+  }
+  access {
+    read = owner(ownerId)
+    create = owner(ownerId)
+    update = owner(ownerId)
+    delete = owner(ownerId)
+  }
+}

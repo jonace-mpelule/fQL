@@ -18,8 +18,8 @@ import (
 )
 
 type Project struct {
-	Root, Source, Output, Firebase, Fingerprint string
-	Schema                                      schema.Schema
+	Root, Source, Output, Firebase, Fingerprint, Target string
+	Schema                                              schema.Schema
 }
 
 func Inside(root, path string) bool {
@@ -89,9 +89,10 @@ func Load(root string) (Project, error) {
 	if cfg.Version != validate.Version {
 		return p, fmt.Errorf("unsupported configuration version %q", cfg.Version)
 	}
-	if cfg.Target != "dart" {
-		return p, fmt.Errorf("unsupported generator target %q; v0.1 supports dart", cfg.Target)
+	if cfg.Target != "dart" && cfg.Target != "typescript" {
+		return p, fmt.Errorf("unsupported generator target %q; supported targets: dart, typescript", cfg.Target)
 	}
+	p.Target = cfg.Target
 	paths := []string{cfg.Schemas, cfg.Output, cfg.Firebase}
 	resolved := []*string{&p.Source, &p.Output, &p.Firebase}
 	for i, s := range paths {
@@ -112,7 +113,7 @@ func Load(root string) (Project, error) {
 		}
 	}
 	if Inside(p.Output, p.Firebase) || Inside(p.Firebase, p.Output) {
-		return p, fmt.Errorf("Dart and Firebase output directories must not overlap")
+		return p, fmt.Errorf("Client and Firebase output directories must not overlap")
 	}
 	var files []string
 	total := 0
@@ -183,6 +184,11 @@ func Load(root string) (Project, error) {
 	p.Schema, e = validate.Schema(p.Schema)
 	if e != nil {
 		return p, e
+	}
+	if p.Target == "typescript" {
+		if e = validate.TypeScript(p.Schema); e != nil {
+			return p, e
+		}
 	}
 	p.Fingerprint = hex.EncodeToString(hash.Sum(nil))
 	return p, nil

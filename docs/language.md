@@ -24,7 +24,7 @@ model Message {
 }
 ```
 
-Models use nonreserved UpperCamelCase names, fields use nonreserved lowerCamelCase names, and collections use top-level identifiers beginning with a lowercase letter. Reserved Dart/runtime names and generated-name collisions are rejected. The `has` field prefix is reserved for presence getters. Identifiers are limited to 64 ASCII characters. Model and collection names must be unique. Document IDs are metadata rather than stored fields.
+Models use nonreserved UpperCamelCase names, fields use nonreserved lowerCamelCase names, and collections use top-level identifiers beginning with a lowercase letter. Reserved Dart/runtime names (plus target-specific TypeScript runtime conflicts) and generated-name collisions are rejected. The `has` field prefix is reserved for presence getters. Identifiers are limited to 64 ASCII characters. Model and collection names must be unique. Document IDs are metadata rather than stored fields.
 
 ## Field semantics
 
@@ -66,6 +66,8 @@ schemas = "schemas"
 output = "../lib/data/fql"
 firebase = "../firebase/generated"
 ```
+
+Set `target = "typescript"` for TypeScript generation (`fql.ts`); initialization defaults to `../src/data/fql` for this target. Only one target is selected per project configuration. See [TypeScript mappings and runtime behavior](typescript.md).
 
 Paths are relative to this configuration, use forward slashes, and must stay inside the project. Source, configuration, and target output paths must not overlap. Managed paths cannot contain symlinks. The source tree permits up to 128 schema files, 1 MiB per file, 16 MiB combined; the schema permits 100 models and 32 fields per model. These are initial compiler safety budgets, not claims about Firestore limits.
 

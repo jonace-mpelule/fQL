@@ -4,7 +4,9 @@
   "scripts": {
     "test:rules": "firebase emulators:exec --project demo-fql --only firestore --config firebase.json \"node --test --test-concurrency=1 tests/emulator/rules.test.mjs\"",
     "test:integration": "firebase emulators:exec --project demo-fql --only firestore,auth --config firebase.json \"node scripts/test-integration.mjs\"",
-    "test:audit": "firebase emulators:exec --project demo-fql --only firestore --config firebase.json \"node --test tests/emulator/audit.test.mjs\""
+    "test:audit": "firebase emulators:exec --project demo-fql --only firestore --config firebase.json \"node --test tests/emulator/audit.test.mjs\"",
+    "test:typescript": "tsc -p tests/typescript/tsconfig.json && node --test tests/typescript/runtime.test.mjs",
+    "test:typescript:emulator": "firebase emulators:exec --project demo-fql --only firestore --config firebase.json \"node --test tests/typescript/emulator.test.mjs\""
   },
   "engines": {
     "node": ">=24.12.0 <25"
@@ -13,6 +15,7 @@
     "@firebase/rules-unit-testing": "6.0.0",
     "firebase": "13.2.0",
     "firebase-tools": "15.35.0",
-    "playwright": "1.65.0"
+    "playwright": "1.65.0",
+    "typescript": "5.9.3"
   }
 }

@@ -4,7 +4,7 @@ GO ?= go
 VERSION ?= dev
 LDFLAGS := -X main.version=$(VERSION)
 
-.PHONY: help setup build run install fmt fmt-check vet test test-race coverage check clean generate generate-check dart-check emulator-test integration-test dist setup-integration check-all schema-format schema-format-check audit-test release release-check installer-test
+.PHONY: help setup build run install fmt fmt-check vet test test-race coverage check clean generate generate-check dart-check emulator-test integration-test dist setup-integration check-all schema-format schema-format-check audit-test release release-check installer-test typescript-check
 
 help: ## Show available development commands
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -51,10 +51,12 @@ clean: ## Remove only known local build and coverage artifacts
 generate: ## Generate artifacts for the Flutter example
 	$(GO) run ./cmd/fql generate --project examples/flutter
 	$(GO) run ./cmd/fql generate --project tests/dart
+	$(GO) run ./cmd/fql generate --project tests/typescript
 
 generate-check: ## Verify committed example artifacts are current
 	$(GO) run ./cmd/fql generate --project examples/flutter --check
 	$(GO) run ./cmd/fql generate --project tests/dart --check
+	$(GO) run ./cmd/fql generate --project tests/typescript --check
 
 dart-check: ## Analyze and test generated Dart (requires Flutter)
 	cd examples/flutter && flutter pub get && flutter analyze
@@ -76,7 +78,7 @@ setup-integration: ## Install locked test dependencies and Chromium (requires No
 	cd tests/dart && flutter pub get
 	npx playwright install chromium
 
-check-all: check dart-check emulator-test integration-test audit-test ## Run the full local verification suite
+check-all: check dart-check typescript-check emulator-test integration-test audit-test ## Run the full local verification suite
 
 schema-format: ## Validate and format example/test schemas
 	$(GO) run ./cmd/fql format --project examples/flutter
@@ -99,3 +101,6 @@ release-check: installer-test ## Check only release tooling and executable packa
 	$(GO) test ./tests/release
 	$(GO) vet ./internal/release ./tools/release ./tools/publish
 	sh -n install.sh
+
+typescript-check: ## Compile generated TypeScript and run focused runtime checks
+	npm run test:typescript

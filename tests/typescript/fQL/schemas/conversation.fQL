@@ -1,0 +1,13 @@
+schema "0.1"
+
+enum ConversationState {
+  open
+  archived
+}
+
+object ConversationInfo {
+  fields {
+    title string.required().minLength(1).maxLength(100)
+    description string.optional().nullable().maxLength(500)
+  }
+}

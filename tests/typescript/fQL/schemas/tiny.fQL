@@ -1,0 +1,21 @@
+schema "0.1"
+
+model Tiny {
+  collection = "tiny"
+  fields {
+    label string.required()
+  }
+  access {
+    read = authenticated
+    create = authenticated
+    update = authenticated
+    delete = authenticated
+  }
+}
+
+model Denied {
+  collection = "denied"
+  fields {
+    flag bool.required()
+  }
+}

@@ -217,7 +217,7 @@ func TestCLIFailures(t *testing.T) {
 			t.Fatalf("%v failed: %s", args, err.String())
 		}
 	}
-	for _, args := range [][]string{{"init", "--target", "typescript"}, {"generate", "--watch", "--check"}, {"validate", "unexpected"}, {"generate", "--unknown"}} {
+	for _, args := range [][]string{{"init", "--target", "unsupported"}, {"generate", "--watch", "--check"}, {"validate", "unexpected"}, {"generate", "--unknown"}} {
 		var out, err bytes.Buffer
 		if code := cli.Run(args, &out, &err, "test"); code != 2 {
 			t.Fatalf("%v code %d, want 2", args, code)

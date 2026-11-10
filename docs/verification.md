@@ -66,3 +66,21 @@ The [enforcement matrix](enforcement.md) describes which guarantees belong to cl
 Extension verification also covers token-preserving/idempotent formatting, cross-file named types, read-only bounded audit scans, baseline schema diffs, recursive Rules validation, timestamp pending states, and typed atomic writes. Browser tests isolate SDK/auth instances per case and force long polling for the local emulator; an explicit within-case reconnect-to-batch scenario checks session continuity. These are test configuration choices, not production runtime changes.
 
 The Go audit CLI was also exercised against malformed synthetic emulator documents: it reported field paths without stored values, exited nonzero, and left the documents unchanged. No production audit was run.
+
+## TypeScript target (2026-11-11)
+
+Focused checks for the added target: strict compilation with TypeScript 5.9.3
+against Firebase 13.2.0 (including public API rejection checks), two runtime
+checks for codecs/builders/query validation/atomic ownership, Go generator,
+project and CLI tests, relevant Go vet/formatting, and unchanged Dart/current
+TypeScript artifact checks passed. The new generator workflow test also covers
+determinism and safe target switching while retaining handwritten files.
+
+A single synthetic emulator integration scenario is provided as
+`npm run test:typescript:emulator` after `npm run test:typescript`. Its local run
+was blocked before test execution by the Firestore emulator download, which was
+stopped rather than left running. It is wired into CI but is not claimed as
+passing evidence here. No React Native/Expo device run, durable native cache,
+production operation, or full existing Dart/emulator suite was run for this
+change. The target uses the modular Firebase JavaScript SDK, whose React Native
+support excludes persistent Firestore caching; see [TypeScript](typescript.md).

@@ -21,7 +21,7 @@ import (
 const help = `FQL — Firestore Query Language
 
 Usage:
-  fql init --target dart [--project PATH]
+  fql init --target dart|typescript [--project PATH]
   fql validate [--project PATH]
   fql generate [--project PATH] [--check | --watch]
   fql format [--project PATH] [--check]
@@ -33,7 +33,7 @@ Usage:
 Commands:
   init       Create fQL/schemas and project configuration without overwriting files
   validate   Parse and validate the complete project schema without writing files
-  generate   Generate Dart, Security Rules, indexes, and compatibility metadata
+  generate   Generate a typed client, Security Rules, indexes, and compatibility metadata
   format     Validate the whole schema, then format files while preserving comments
   diff       Compare against the last generated baseline or --against PROJECT
   audit      Read-only, bounded scan; production token comes from FQL_ACCESS_TOKEN
@@ -93,7 +93,7 @@ func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer, ve
 		flags.IntVar(&auditOptions.MaxDocuments, "max-documents", 1000, "maximum total documents to read")
 	}
 	if args[0] == "init" {
-		target = flags.String("target", "dart", "runtime target (dart)")
+		target = flags.String("target", "dart", "runtime target (dart or typescript)")
 	}
 	if args[0] == "generate" {
 		flags.BoolVar(&check, "check", false, "fail if generated artifacts are stale; do not write")
@@ -109,12 +109,12 @@ func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer, ve
 		fmt.Fprintln(stderr, "fql: unexpected arguments or incompatible --check/--watch flags")
 		return 2
 	}
-	if target != nil && *target != "dart" {
-		fmt.Fprintln(stderr, "fql: v0.1 supports only --target dart")
+	if target != nil && *target != "dart" && *target != "typescript" {
+		fmt.Fprintln(stderr, "fql: supported targets: dart, typescript")
 		return 2
 	}
 	if args[0] == "init" {
-		if e := project.Init(*root); e != nil {
+		if e := project.InitTarget(*root, *target); e != nil {
 			fmt.Fprintln(stderr, "fql:", e)
 			return 1
 		}
@@ -199,7 +199,7 @@ func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer, ve
 	}
 	message := "Schema is valid.\n"
 	if args[0] == "generate" {
-		message = "Generated Dart client, rules, indexes, and fQL/fql.lock.\n"
+		message = fmt.Sprintf("Generated %s client, rules, indexes, and fQL/fql.lock.\n", p.Target)
 		if check {
 			message = "Generated artifacts are current.\n"
 		}

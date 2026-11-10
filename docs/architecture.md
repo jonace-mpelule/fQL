@@ -1,6 +1,6 @@
 # Architecture
 
-FQL is a developer-time compiler and generated SDK integration layer. One project schema is authored across recursively discovered `.fQL` files in `fQL/schemas/`. Dart is the v0.1 target; TypeScript follows the same shared semantics in a later release.
+FQL is a developer-time compiler and generated SDK integration layer. One project schema is authored across recursively discovered `.fQL` files in `fQL/schemas/`. Dart and TypeScript targets share schema/storage semantics. TypeScript uses the modular Firebase JavaScript SDK; see [its contract](typescript.md).
 
 ## Repository boundaries
 
@@ -12,7 +12,7 @@ FQL is a developer-time compiler and generated SDK integration layer. One projec
 | `internal/syntax` | Lexer/parser and source positions |
 | `internal/schema` | Language-independent schema graph and diagnostics |
 | `internal/validate` | Semantic checks and normalization |
-| `internal/generate` | Dart, rules, indexes, artifact ownership, staged writes and rollback |
+| `internal/generate` | Dart/TypeScript, rules, indexes, artifact ownership, staged writes and rollback |
 | `tools/release` | Reproducible cross-platform binary archives and checksums |
 | `tests` | Dedicated Go, Dart, and emulator verification |
 | `examples/flutter` | Runnable emulator-backed example and committed generated artifacts |
@@ -21,7 +21,7 @@ The pipeline is source discovery → syntax tree → semantic validation → typ
 
 ## Generated integration
 
-A generated Dart library contains shared runtime validation/SDK delegation, model-specific codecs/getters, typed field predicates, repository classes, and create/update builders. Runtime source is embedded in the Go binary so generation works without a separate network download or runtime package. This keeps runtime/generator compatibility together in v0.1.
+A generated client library contains shared runtime validation/SDK delegation, model-specific codecs/getters, typed field predicates, repository classes, and create/update builders. Each target’s runtime source is embedded in the Go binary so generation works without a separate network download or runtime package. This keeps runtime/generator compatibility together in v0.1.
 
 Models retain presence separately from null and expose immutable decoded state. Builders validate supplied operations; reads validate all returned data. The official SDK owns persistence, transaction retries, queries, listeners, and synchronization. Metadata and SDK failures remain visible.
 

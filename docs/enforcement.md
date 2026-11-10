@@ -1,6 +1,6 @@
 # Enforcement and runtime behavior
 
-| Feature | Generated Dart | Generated Security Rules |
+| Feature | Generated Dart / TypeScript | Generated Security Rules |
 | --- | --- | --- |
 | Required / optional / null | Write validation and read decoding | Resulting document on create/update |
 | Types and supported scalar ranges | Write validation and read decoding | Resulting document on create/update |
@@ -50,3 +50,11 @@ Emulator tests prove local rule behavior; they do not deploy production rules or
 References: [field validation](https://firebase.google.com/docs/firestore/security/rules-fields), [query authorization](https://firebase.google.com/docs/firestore/security/rules-query), [listener metadata](https://firebase.google.com/docs/firestore/query-data/listen), [transactions](https://firebase.google.com/docs/firestore/manage-data/transactions), [Rules strings](https://firebase.google.com/docs/reference/rules/rules.String), and [Rules timestamps](https://firebase.google.com/docs/reference/rules/rules.Timestamp).
 
 The [extension contracts](extensions.md) describe explicit-ID batch restrictions, transaction retries, managed-create read costs, list/rule budgets, read-only auditing, and lockfile baseline upgrades.
+
+## TypeScript target
+
+The same generated Rules and schema constraints apply to TypeScript. The runtime
+uses Firebase JavaScript SDK promises/callback listeners rather than Dart futures
+and streams. Optional values use `undefined`; explicit null remains `null`.
+See [TypeScript contracts](typescript.md) for mappings, unsubscribe handling,
+React Native persistence limits, and SDK compatibility.

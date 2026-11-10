@@ -50,6 +50,7 @@ jobs:
       - run: go build -trimpath ./cmd/fql
       - run: go run ./cmd/fql generate --project examples/flutter --check
       - run: go run ./cmd/fql generate --project tests/dart --check
+      - run: go run ./cmd/fql generate --project tests/typescript --check
       - run: go run ./cmd/fql format --project examples/flutter --check
       - run: go run ./cmd/fql format --project tests/dart --check
 
@@ -84,6 +85,8 @@ jobs:
       - run: make generate-check dart-check
       - name: Verify Dart formatting
         run: dart format --output=none --set-exit-if-changed examples/flutter/lib tests/dart
+      - run: npm run test:typescript
+      - run: npm run test:typescript:emulator
       - run: npm run test:rules
       - run: npm run test:integration
       - run: npm run test:audit

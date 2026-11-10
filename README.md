@@ -1,8 +1,8 @@
 # FQL — Firestore Query Language
 
-FQL compiles separate schema files into an Ent-inspired, typed Dart client for Cloud Firestore, Security Rules, and index configuration. The compiler and CLI are Go; application code uses the official Flutter Firestore SDK. No runtime server is required.
+FQL compiles separate schema files into an Ent-inspired, typed Dart or TypeScript client for Cloud Firestore, Security Rules, and index configuration. The compiler and CLI are Go; application code uses the official Firebase SDK for its target. No runtime server is required.
 
-**Version: 0.1 development release.** Implemented: schemas, validation, Dart generation, CRUD, queries, subscriptions, rules/index generation, and CLI workflows. Includes typed enums, nested objects/bounded lists, managed server timestamps, atomic batches/transactions, schema diffs, read-only audits, and validating formatting. TypeScript, relationships, uniqueness, migrations, and other field transforms remain outside this release. Read the [enforcement boundaries](docs/enforcement.md) before integration.
+**Version: 0.1 development release.** Implemented: schemas, validation, Dart generation, CRUD, queries, subscriptions, rules/index generation, and CLI workflows. Includes typed enums, nested objects/bounded lists, managed server timestamps, atomic batches/transactions, schema diffs, read-only audits, and validating formatting. Relationships, uniqueness, migrations, and other field transforms remain outside this release. Read the [enforcement boundaries](docs/enforcement.md) before integration.
 
 ## Install the CLI
 
@@ -63,6 +63,36 @@ final changes = db.messages.query()
 
 Generated files belong in source control and must not be edited by hand. Generation does not deploy rules/indexes or migrate existing data. Review the generated Firebase artifacts and configure your own explicit deployment workflow. The initialized schemas use ownership policies; authenticate before accessing them.
 
+## TypeScript / React Native
+
+```sh
+npm install firebase
+fql init --target typescript
+fql generate
+```
+
+TypeScript projects use `src/data/fql/fql.ts` by default:
+
+```ts
+import { getFirestore, Timestamp } from 'firebase/firestore';
+import { FqlClient, MessageFields } from './data/fql/fql';
+
+const db = new FqlClient(getFirestore(app));
+await db.messages.create().setOwnerId(uid).setBody('Hello')
+  .setCreatedAt(Timestamp.now()).save();
+
+const unsubscribe = db.messages.query()
+  .where(MessageFields.ownerId.eq(uid))
+  .orderBy(MessageFields.createdAt, 'desc').limit(50)
+  .watch(snapshot => console.log(snapshot.data), error => console.error(error));
+// Return unsubscribe from React useEffect to clean up the listener.
+```
+
+This target uses the modular Firebase JavaScript SDK, including in React Native
+and Expo. It does not accept `@react-native-firebase/firestore` instances.
+Firestore persistent caching is unavailable in React Native with this SDK.
+See the [TypeScript guide](docs/typescript.md) for semantics, setup, and limits.
+
 ## End-user project layout
 
 ```text
@@ -84,9 +114,9 @@ The compiler recursively discovers `.fQL` files, including nested folders. Confi
 
 | Command | Behavior |
 | --- | --- |
-| `fql init --target dart` | Create configuration and separate sample schemas without overwriting files |
+| `fql init --target dart` / `--target typescript` | Create configuration and separate sample schemas without overwriting files |
 | `fql validate` | Validate all schema files without generating output |
-| `fql generate` | Generate Dart, rules, indexes, and compatibility metadata |
+| `fql generate` | Generate the configured client, rules, indexes, and compatibility metadata |
 | `fql generate --check` | Exit nonzero for missing/stale artifacts; never write |
 | `fql generate --watch` | Regenerate on changes and recover after source errors; Ctrl+C stops |
 | `fql format` / `fql format --check` | Validate the complete schema, then format files / check without writing |
@@ -105,6 +135,7 @@ make check                 # Go formatting, vet, tests, build, stale-artifact ch
 make test-race
 make coverage
 make dart-check            # Requires Flutter 3.41.9 / Dart 3.11.5
+make typescript-check      # Strict generated-code compilation + focused runtime checks
 ```
 
 For integration tests, use Node 24.12.0 (`nvm use`), Java 21+, and Flutter:
