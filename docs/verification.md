@@ -102,8 +102,15 @@ No Dart/TypeScript runtime code changed; their generated output remains byte-ide
 
 ## CI cost and release scope — 2026-11-11
 
-Routine CI now has one Ubuntu job, replacing the three-OS Go and installer matrices and automatic Flutter/browser integration. Pull requests and pushes to main trigger CI; feature-branch pushes do not create duplicate runs. The retained checks are `make check installer-test`, TypeScript compilation/runtime tests, and Firestore security-rules tests. Flutter analysis/tests/browser integration, race detection, and parser fuzzing remain available in the explicitly dispatched Extended verification workflow. No schedules or automatic extended runs are configured.
+Routine CI now has one Ubuntu job, replacing the three-OS Go and installer matrices and automatic Flutter/browser integration. Automatic CI is now limited to ready pull requests; main/feature-branch pushes and merges do not duplicate it. Explicit manual runs remain available. The retained checks are `make check installer-test`, TypeScript compilation/runtime tests, and Firestore security-rules tests. Flutter analysis/tests/browser integration, race detection, and parser fuzzing remain available in the explicitly dispatched Extended verification workflow. No schedules or automatic extended runs are configured.
 
 Windows binaries, ZIP packaging, the PowerShell installer, and its test have been removed. New release packages contain four macOS/Linux archives (arm64/amd64), install.sh, and SHA256SUMS. Existing published releases were not modified.
 
 Local validation for this change: workflow YAML parsed successfully; `make check installer-test` passed, including all six installer tests; TypeScript compilation and two runtime tests passed; the release builder produced four real archives, verified checksums and archive contents, and ran the native CLI through init/validate/format/generate/check/diff with an empty PATH. No production release was published. Hosted CI for this revision is reported separately in the pull request; expensive manual verification was not rerun for these workflow/packaging changes.
+
+
+## PR-only CI triggers — 2026-11-11
+
+Removed the main push trigger after confirming it repeated the successful PR suite on the merge commit. CI now runs automatically for opened, synchronized, reopened, and newly ready PRs; draft PR jobs are skipped. Core checks retain their existing single Linux job and test commands. Release and extended verification workflows remain manual. Four additional recent CI runs belonged to distinct Dependabot PRs, not the merge event.
+
+Validation for this workflow-only change: all workflow YAML parsed successfully; CI has only pull_request/workflow_dispatch triggers, explicitly includes ready_for_review, and guards draft jobs. Release/extended workflows retain only workflow_dispatch. No compiler, SDK, emulator, or release tests were rerun locally because their implementation and commands did not change.
