@@ -1,0 +1,92 @@
+schema "0.1"
+
+model Envelope {
+  collection = "envelopes"
+  fields {
+    recipientId string.required().immutable()
+    senderId string.required().immutable()
+    deviceId string.required().immutable()
+    generation int.required().immutable()
+    expiresAt timestamp.required().immutable()
+    body string.required().minLength(1).maxLength(100)
+  }
+  access {
+    get = activeDeviceFor(existing.recipientId, existing.deviceId, existing.generation)
+          and noBlock(auth.uid) and existing.expiresAt > now
+    list = activeDeviceFor(existing.recipientId, existing.deviceId, existing.generation)
+           and noBlock(auth.uid) and existing.expiresAt > now
+    create = authenticated and incoming.senderId == auth.uid
+    update = owner(senderId) and incoming.recipientId == existing.recipientId
+    delete = owner(senderId)
+  }
+  indexes {
+    index(recipientId.asc, deviceId.asc, generation.asc, expiresAt.asc)
+  }
+}
+
+model GetOnly {
+  collection = "single"
+  fields {
+    flag bool.required()
+  }
+  access {
+    get = authenticated
+  }
+}
+
+model ListOnly {
+  collection = "listing"
+  fields {
+    ownerId string.required().immutable()
+  }
+  access {
+    list = owner(ownerId)
+  }
+}
+
+model Negated {
+  collection = "negated"
+  fields {
+    flag bool.required()
+  }
+  access {
+    get = not (auth.claims.deviceId == "blocked")
+          and not (get(Account, auth.uid).active == false)
+  }
+}
+
+model ExpiryProbe {
+  collection = "expiry"
+  fields {
+    ownerId string.required().immutable()
+    expiresAt timestamp.required()
+  }
+  access {
+    create = owner(ownerId) and incoming.expiresAt > now
+  }
+}
+
+model ExpiredProbe {
+  collection = "expired"
+  fields {
+    expiresAt timestamp.required()
+  }
+  access {
+    get = not (existing.expiresAt > now)
+  }
+}
+
+model PolicyTypes {
+  collection = "policyTypes"
+  fields {
+    birthday date.required()
+    flag bool.required()
+    score float.required()
+  }
+  access {
+    get = authenticated and privileged(auth.claims.staff, auth.claims.weight)
+          and not (existing.birthday < existing.birthday)
+    create = authenticated and privileged(auth.claims.staff, auth.claims.weight)
+             and incoming.flag == true and incoming.score > 0.0
+  }
+}

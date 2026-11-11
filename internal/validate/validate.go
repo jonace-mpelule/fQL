@@ -76,9 +76,12 @@ func Schema(s schema.Schema) (schema.Schema, error) {
 			}
 			ops[a.Operation] = true
 			switch a.Operation {
-			case "read", "create", "update", "delete":
+			case "read", "get", "list", "create", "update", "delete":
 			default:
-				return s, fail(a.Position, "access operation must be read, create, update, or delete")
+				return s, fail(a.Position, "access operation must be read, get, list, create, update, or delete")
+			}
+			if a.Expression != nil {
+				continue
 			}
 			switch a.Kind {
 			case "deny", "authenticated":
@@ -92,6 +95,9 @@ func Schema(s schema.Schema) (schema.Schema, error) {
 			default:
 				return s, fail(a.Position, "unsupported access policy")
 			}
+		}
+		if ops["read"] && (ops["get"] || ops["list"]) {
+			return s, fail(m.Position, "read cannot coexist with get/list policies; replace read with separate get and list grants")
 		}
 		indexes := map[string]bool{}
 		for _, idx := range m.Indexes {
@@ -142,7 +148,11 @@ func Schema(s schema.Schema) (schema.Schema, error) {
 			generated[name] = true
 		}
 	}
-	return resolveNames(s)
+	s, err = resolveNames(s)
+	if err != nil {
+		return s, err
+	}
+	return validatePolicies(s)
 }
 func literal(f schema.Field, v schema.Value, allowed bool) error {
 	if v.Kind == "null" {

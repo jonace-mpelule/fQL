@@ -84,3 +84,17 @@ passing evidence here. No React Native/Expo device run, durable native cache,
 production operation, or full existing Dart/emulator suite was run for this
 change. The target uses the modular Firebase JavaScript SDK, whose React Native
 support excludes persistent Firestore caching; see [TypeScript](typescript.md).
+
+## Declarative authorization and filename compatibility — 2026-11-11
+
+Verified locally on macOS arm64 with the pinned Go/Node/Java/Firestore emulator versions above:
+
+- `make check`: complete Go suite, `go vet`, formatting, CLI build, generated-artifact freshness for Dart and TypeScript projects, and schema formatting checks passed.
+- `npm run test:rules`: 18 tests passed (nine existing rule scenarios and nine declarative-policy scenarios). Tests compile rules from a mixed `.fql`/`.fQL` project at runtime, then exercise raw SDK requests so generated client checks cannot mask rules failures.
+- Policy scenarios cover accepted device access; anonymous/UID/device impersonation; missing, malformed, stale, or revoked claims; suspension and missing/malformed related documents; block records; expiration, including equality with server request time; the full mailbox query and rejection when each required predicate is omitted; independent get/list grants; create ownership and protected partial updates; negation/disjunction guards; bool/float claims and calendar validity; and coordinated/rejected batch and transaction writes using getAfter.
+- Compiler/project/format/diff tests cover source-located semantic errors, cross-file names, recursive policies, bounded expansion/access calls, invalid lookup IDs, mixed extension discovery, lowercase scaffolding, deterministic generation, and source-independent policy/claim diff baselines.
+- A bounded five-second `FuzzPolicyParser` run with two workers completed over 113,000 executions without a failure. CI includes this same short fuzz gate.
+
+The mailbox query exposed an emulator limitation with explicit `is timestamp` guards. The generator uses exhaustive ordered timestamp comparisons against `request.time` instead: the complete query succeeds while malformed timestamps still deny, including under negation. The expiration equality test uses a server timestamp transform rather than assuming subsecond agreement between client and emulator clocks.
+
+No Dart/TypeScript runtime code changed; their generated output remains byte-identical, with only compiler compatibility metadata advancing to `0.1.0-dev.4`. Native-device, real credential issuance, hosted CI, index deployment/readiness, and production behavior were not reverified for this extension. The rules suite does not establish physical-device identity, cache erasure, or clock-driven listener eviction. Production use requires the application's trusted device/session issuance mechanism, review of generated rules/indexes, explicit deployment, and application-specific query/device acceptance. See [authorization contracts](authorization.md).

@@ -17,7 +17,7 @@ import (
 	"github.com/jonace-mpelule/fQL/internal/schema"
 )
 
-const CompilerVersion = "0.1.0-dev.2"
+const CompilerVersion = "0.1.0-dev.4"
 
 type manifest struct {
 	Baseline *schema.Schema    `json:"baseline,omitempty"`

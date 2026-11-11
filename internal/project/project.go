@@ -135,7 +135,7 @@ func Load(root string) (Project, error) {
 		if !d.Type().IsRegular() {
 			return fmt.Errorf("schema directory must contain regular files only")
 		}
-		if filepath.Ext(path) == ".fQL" {
+		if IsSchemaPath(path) {
 			files = append(files, path)
 			if len(files) > 128 {
 				return fmt.Errorf("schema exceeds 128 file limit")
@@ -147,7 +147,7 @@ func Load(root string) (Project, error) {
 		return p, e
 	}
 	if len(files) == 0 {
-		return p, fmt.Errorf("no .fQL schemas found under %s", cfg.Schemas)
+		return p, fmt.Errorf("no .fql or .fQL schemas found under %s", cfg.Schemas)
 	}
 	sort.Strings(files)
 	hash := sha256.New()
@@ -177,6 +177,9 @@ func Load(root string) (Project, error) {
 		p.Schema.Models = append(p.Schema.Models, s.Models...)
 		p.Schema.Enums = append(p.Schema.Enums, s.Enums...)
 		p.Schema.Objects = append(p.Schema.Objects, s.Objects...)
+		p.Schema.Claims = append(p.Schema.Claims, s.Claims...)
+		p.Schema.ClaimBlocks = append(p.Schema.ClaimBlocks, s.ClaimBlocks...)
+		p.Schema.NamedPolicies = append(p.Schema.NamedPolicies, s.NamedPolicies...)
 	}
 	sort.Slice(p.Schema.Models, func(i, j int) bool { return p.Schema.Models[i].Name < p.Schema.Models[j].Name })
 	sort.Slice(p.Schema.Enums, func(i, j int) bool { return p.Schema.Enums[i].Name < p.Schema.Enums[j].Name })
@@ -193,3 +196,6 @@ func Load(root string) (Project, error) {
 	p.Fingerprint = hex.EncodeToString(hash.Sum(nil))
 	return p, nil
 }
+
+// IsSchemaPath accepts both supported spellings, without broad case folding.
+func IsSchemaPath(path string) bool { ext := filepath.Ext(path); return ext == ".fql" || ext == ".fQL" }

@@ -510,7 +510,7 @@
     ]
   },
   "format": "2",
-  "compiler": "0.1.0-dev.2",
+  "compiler": "0.1.0-dev.4",
   "schema": "1999a85b65742792d025166884f5c73a910afbf5f6093f8f2afa3bee5b3a3e50",
   "files": {
     "firebase/generated/firestore.indexes.json": "6742255415c36daf631b52f233039190af819205cc41fa58d07dd7d9e180c2b9",

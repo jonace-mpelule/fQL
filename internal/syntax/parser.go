@@ -14,12 +14,13 @@ const MaxSourceBytes = 1 << 20
 var decimalNumber = regexp.MustCompile(`^-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?$`)
 
 type parser struct {
-	scanner scanner.Scanner
-	token   rune
-	text    string
-	pos     schema.Position
-	err     error
-	tokens  int
+	scanner         scanner.Scanner
+	token           rune
+	text            string
+	pos             schema.Position
+	err             error
+	tokens          int
+	expressionDepth int
 }
 
 func newParser(file string, source []byte) *parser {
@@ -135,6 +136,37 @@ func Parse(file string, source []byte) (schema.Schema, error) {
 	out.Version = p.str()
 	for p.err == nil && p.token != scanner.EOF {
 		switch p.text {
+		case "claims":
+			out.ClaimBlocks = append(out.ClaimBlocks, p.pos)
+			p.next()
+			p.take("{")
+			for p.err == nil && p.text != "}" {
+				c := schema.Claim{Position: p.pos}
+				c.Name = p.ident()
+				c.Type = p.ident()
+				out.Claims = append(out.Claims, c)
+			}
+			p.take("}")
+		case "policy":
+			n := schema.NamedPolicy{Position: p.pos}
+			p.next()
+			n.Name = p.ident()
+			p.take("(")
+			for p.err == nil && p.text != ")" {
+				a := schema.Parameter{Position: p.pos}
+				a.Name = p.ident()
+				a.Type = p.ident()
+				n.Parameters = append(n.Parameters, a)
+				if p.text != "," {
+					break
+				}
+				p.next()
+			}
+			p.take(")")
+			p.take("{")
+			n.Expression = p.expression(0)
+			p.take("}")
+			out.NamedPolicies = append(out.NamedPolicies, n)
 		case "model":
 			out.Models = append(out.Models, p.model())
 		case "enum":
@@ -160,7 +192,7 @@ func Parse(file string, source []byte) (schema.Schema, error) {
 			p.take("}")
 			out.Objects = append(out.Objects, o)
 		default:
-			p.fail("expected model, object, or enum")
+			p.fail("expected model, object, enum, claims, or policy")
 		}
 		if len(out.Models) > 100 {
 			p.fail("at most 100 models are permitted per file")
@@ -193,12 +225,19 @@ func (p *parser) model() schema.Model {
 				a := schema.Policy{Position: p.pos}
 				a.Operation = p.ident()
 				p.take("=")
-				a.Kind = p.ident()
-				if a.Kind == "owner" {
-					p.take("(")
-					a.Field = p.ident()
-					p.take(")")
+				a.Expression = p.expression(0)
+				// Preserve the legacy representation and unchanged generated output.
+				x := a.Expression
+				if x != nil && x.Kind == "name" && (x.Name == "deny" || x.Name == "authenticated") {
+					a.Kind = x.Name
+					a.Expression = nil
 				}
+				if x != nil && x.Kind == "call" && x.Name == "owner" && len(x.Args) == 1 && x.Args[0].Kind == "name" {
+					a.Kind = "owner"
+					a.Field = x.Args[0].Name
+					a.Expression = nil
+				}
+
 				m.Policies = append(m.Policies, a)
 			}
 			p.take("}")

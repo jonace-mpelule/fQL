@@ -1545,7 +1545,7 @@
     ]
   },
   "format": "2",
-  "compiler": "0.1.0-dev.2",
+  "compiler": "0.1.0-dev.4",
   "schema": "2df45d94c87149aeafc85336236e1f472f996cc2b7a963f1b9ab72c0c6272160",
   "files": {
     "firebase/generated/firestore.indexes.json": "3fc57c4556065d4dffbb1e8a1d25bc13a2a9bab6998a8cb8d4dbed6a4cedb5af",

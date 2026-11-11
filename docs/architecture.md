@@ -1,6 +1,6 @@
 # Architecture
 
-FQL is a developer-time compiler and generated SDK integration layer. One project schema is authored across recursively discovered `.fQL` files in `fQL/schemas/`. Dart and TypeScript targets share schema/storage semantics. TypeScript uses the modular Firebase JavaScript SDK; see [its contract](typescript.md).
+FQL is a developer-time compiler and generated SDK integration layer. One project schema is authored across recursively discovered `.fql` and `.fQL` files in `fQL/schemas/`. Dart and TypeScript targets share schema/storage semantics. TypeScript uses the modular Firebase JavaScript SDK; see [its contract](typescript.md).
 
 ## Repository boundaries
 
@@ -36,3 +36,5 @@ Language/configuration version `0.1`, lockfile format `2`, and compiler compatib
 ## Release boundary
 
 Enums, embedded objects/bounded lists, managed timestamps, typed atomic operations, validating formatting, schema diffs, and read-only auditing are implemented; see [extensions](extensions.md). No migrations, cross-document integrity constraints, arbitrary validation expressions, alternate runtime backends, or generated server integrations are implied. Add features through specified semantics, generated-code checks, and appropriate runtime/rules tests rather than through speculative abstractions.
+
+Authorization syntax is parsed into source-located expressions, expanded and typechecked against the combined schema, then rendered into Firestore rules without client-side policy evaluation. Named-policy calls are acyclic and bounded. Claims and reusable policy definitions participate in effective-schema diffs. See [authorization](authorization.md).

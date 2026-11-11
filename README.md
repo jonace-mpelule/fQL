@@ -2,7 +2,7 @@
 
 FQL compiles separate schema files into an Ent-inspired, typed Dart or TypeScript client for Cloud Firestore, Security Rules, and index configuration. The compiler and CLI are Go; application code uses the official Firebase SDK for its target. No runtime server is required.
 
-**Version: 0.1 development release.** Implemented: schemas, validation, Dart generation, CRUD, queries, subscriptions, rules/index generation, and CLI workflows. Includes typed enums, nested objects/bounded lists, managed server timestamps, atomic batches/transactions, schema diffs, read-only audits, and validating formatting. Relationships, uniqueness, migrations, and other field transforms remain outside this release. Read the [enforcement boundaries](docs/enforcement.md) before integration.
+**Version: 0.1 development release.** Implemented: schemas, validation, Dart generation, CRUD, queries, subscriptions, rules/index generation, and CLI workflows. Includes typed enums, nested objects/bounded lists, managed server timestamps, atomic batches/transactions, schema diffs, read-only audits, and validating formatting. Includes declarative authorization expressions, typed auth claims, related-document lookups, reusable policies, separate get/list grants, and atomic post-state checks; see [authorization](docs/authorization.md) for enforcement and query limits. Relationships, uniqueness, migrations, and other field transforms remain outside this release. Read the [enforcement boundaries](docs/enforcement.md) before integration.
 
 ## Install the CLI
 
@@ -100,15 +100,15 @@ fQL/
   fql.config
   fql.lock
   schemas/
-    users.fQL
-    messages.fQL
+    users.fql
+    messages.fql
 lib/data/fql/fql.dart
 firebase/generated/
   firestore.rules
   firestore.indexes.json
 ```
 
-The compiler recursively discovers `.fQL` files, including nested folders. Configuration lives outside model files. See the [language specification](docs/language.md) for syntax, types, and presence/default semantics.
+The compiler recursively discovers `.fql` and `.fQL` files, including nested folders. New projects use lowercase `.fql`; both spellings may coexist. Configuration lives outside model files. See the [language specification](docs/language.md) for syntax, types, and presence/default semantics.
 
 ## CLI
 

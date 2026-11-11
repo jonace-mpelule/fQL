@@ -44,7 +44,7 @@ Managed getters use `FqlServerTimestamp`: `isPending` is explicit and `value` is
 
 ## Formatting
 
-`fql format [--project PATH] [--check]` validates the entire schema graph first, then formats all recursively discovered `.fQL` files. It preserves comments, literal spellings, declaration order, and modifier order. Invalid projects are never rewritten. Replacements are staged with rollback on ordinary write failures; check mode writes nothing and fails if formatting is needed. Format does not generate artifacts or deploy anything. Run format before generate so source fingerprints match the canonical files.
+`fql format [--project PATH] [--check]` validates the entire schema graph first, then formats all recursively discovered `.fql` and `.fQL` files. It preserves comments, literal spellings, declaration order, and modifier order. Invalid projects are never rewritten. Replacements are staged with rollback on ordinary write failures; check mode writes nothing and fails if formatting is needed. Format does not generate artifacts or deploy anything. Run format before generate so source fingerprints match the canonical files.
 
 ## Diff and audit
 
@@ -81,3 +81,7 @@ fql audit --firebase-project demo-fql --emulator 127.0.0.1:8080 --max-documents 
 ```
 
 Emulator and production audits are explicit alternatives. Production scanning needs a separately provided OAuth token; it never falls back to emulator credentials.
+
+## Declarative authorization and schema extensions
+
+See [authorization](authorization.md) for typed expressions, trusted claims, related-document lookups, reusable policies, and atomic post-state checks. These extensions require compiler compatibility `0.1.0-dev.4`; language/configuration `0.1` and lock format `2` remain unchanged. New projects use `.fql`; existing `.fQL` schemas remain supported.

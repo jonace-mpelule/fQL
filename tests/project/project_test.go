@@ -71,7 +71,7 @@ func TestWorkflowAndDeterminism(t *testing.T) {
 	// Source changes do not make a check write the lockfile.
 	lock := filepath.Join(root, "fQL/fql.lock")
 	original := read(t, lock)
-	source := filepath.Join(root, "fQL/schemas/users.fQL")
+	source := filepath.Join(root, "fQL/schemas/users.fql")
 	write(t, source, append(read(t, source), []byte("\n// revision\n")...))
 	p = load(t, root)
 	if e := generate.Write(p, true); e == nil {
@@ -86,7 +86,7 @@ func TestWorkflowAndDeterminism(t *testing.T) {
 }
 func TestRecursiveDiscoveryAndDuplicates(t *testing.T) {
 	root := initialized(t)
-	source := filepath.Join(root, "fQL/schemas/users.fQL")
+	source := filepath.Join(root, "fQL/schemas/users.fql")
 	b := read(t, source)
 	nested := filepath.Join(root, "fQL/schemas/nested/users.fQL")
 	write(t, nested, b)
@@ -169,7 +169,7 @@ func TestSymlinksRejected(t *testing.T) {
 }
 func TestInitDoesNotOverwrite(t *testing.T) {
 	root := initialized(t)
-	path := filepath.Join(root, "fQL/schemas/users.fQL")
+	path := filepath.Join(root, "fQL/schemas/users.fql")
 	before := read(t, path)
 	if e := project.Init(root); e == nil {
 		t.Fatal("reinitialization accepted")
@@ -186,7 +186,7 @@ func TestInvalidSchemaPreservesOutput(t *testing.T) {
 	}
 	path := filepath.Join(p.Output, "fql.dart")
 	before := read(t, path)
-	write(t, filepath.Join(root, "fQL/schemas/users.fQL"), []byte("invalid"))
+	write(t, filepath.Join(root, "fQL/schemas/users.fql"), []byte("invalid"))
 	if _, e := project.Load(root); e == nil {
 		t.Fatal("invalid schema accepted")
 	}
@@ -284,7 +284,7 @@ func TestLineEndingsRemainPortable(t *testing.T) {
 	if e := generate.Write(p, false); e != nil {
 		t.Fatal(e)
 	}
-	for _, rel := range []string{"fQL/fql.config", "fQL/schemas/users.fQL", "lib/data/fql/fql.dart", "fQL/fql.lock"} {
+	for _, rel := range []string{"fQL/fql.config", "fQL/schemas/users.fql", "lib/data/fql/fql.dart", "fQL/fql.lock"} {
 		path := filepath.Join(root, filepath.FromSlash(rel))
 		write(t, path, bytes.ReplaceAll(read(t, path), []byte("\n"), []byte("\r\n")))
 	}
@@ -299,7 +299,7 @@ func TestLineEndingsRemainPortable(t *testing.T) {
 
 func TestWatchRecoversAfterSourceError(t *testing.T) {
 	root := initialized(t)
-	source := filepath.Join(root, "fQL/schemas/users.fQL")
+	source := filepath.Join(root, "fQL/schemas/users.fql")
 	original := read(t, source)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -336,7 +336,7 @@ func TestDiffBaselineAndFormatCommands(t *testing.T) {
 			t.Fatalf("%v failed: %s", args, diag.String())
 		}
 	}
-	file := filepath.Join(root, "fQL/schemas/users.fQL")
+	file := filepath.Join(root, "fQL/schemas/users.fql")
 	write(t, file, bytes.ReplaceAll(read(t, file), []byte("maxLength(100)"), []byte("maxLength(90)")))
 	out.Reset()
 	diag.Reset()
@@ -345,5 +345,29 @@ func TestDiffBaselineAndFormatCommands(t *testing.T) {
 	}
 	if !strings.Contains(out.String(), `"breaking":true`) {
 		t.Fatalf("missing breaking report: %s", out.String())
+	}
+}
+
+func TestMixedSchemaExtensionsResolvePoliciesAcrossFiles(t *testing.T) {
+	root := initialized(t)
+	// Initialized sources use lowercase, while old extensions continue to work.
+	legacy := filepath.Join(root, "fQL/schemas/nested/policies.fQL")
+	write(t, legacy, []byte(`schema "0.1" claims {deviceId string} policy device(value string) {auth.claims.deviceId == value}`))
+	source := filepath.Join(root, "fQL/schemas/users.fql")
+	write(t, source, bytes.ReplaceAll(read(t, source), []byte("read = owner(id)"), []byte(`get = device(auth.uid) list = deny`)))
+	p := load(t, root)
+	if len(p.Schema.NamedPolicies) != 1 || len(p.Schema.Claims) != 1 {
+		t.Fatal("cross-file declarations lost")
+	}
+	if e := generate.Write(p, false); e != nil {
+		t.Fatal(e)
+	}
+	if e := generate.Write(p, true); e != nil {
+		t.Fatal(e)
+	}
+	// A duplicate across extensions must be diagnosed rather than silently skipped.
+	write(t, filepath.Join(root, "fQL/schemas/duplicate.fQL"), read(t, source))
+	if _, e := project.Load(root); e == nil || !strings.Contains(e.Error(), "duplicate") {
+		t.Fatalf("missing duplicate diagnostic: %v", e)
 	}
 }

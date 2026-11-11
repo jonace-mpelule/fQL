@@ -47,6 +47,7 @@ jobs:
         run: |
           go test -race ./...
           go test ./tests/compiler -run='^$' -fuzz=FuzzParser -fuzztime=15s
+          go test ./tests/compiler -run='^$' -fuzz=FuzzPolicyParser -fuzztime=5s
       - run: go build -trimpath ./cmd/fql
       - run: go run ./cmd/fql generate --project examples/flutter --check
       - run: go run ./cmd/fql generate --project tests/dart --check
