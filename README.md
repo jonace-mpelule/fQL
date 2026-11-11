@@ -120,7 +120,7 @@ All project commands accept `--project PATH`; the default is the current directo
 
 ## Develop and verify
 
-Routine CI uses one Linux job for compiler checks, generated-artifact freshness, Unix installer tests, TypeScript compilation/runtime tests, and Firestore rules enforcement. It runs on pull requests and pushes to `main`, avoiding duplicate branch/PR runs. Flutter/browser integration, race detection, and fuzzing are available through the manual **Extended verification** workflow and the local commands below. Windows binaries and installation are currently outside the release scope.
+Routine CI uses one Linux job for compiler checks, generated-artifact freshness, Unix installer tests, TypeScript compilation/runtime tests, and Firestore rules enforcement. It runs when a ready pull request is opened, updated, or reopened, when a draft becomes ready for review, or when explicitly requested manually. Draft PRs skip the job. Branch pushes, tags, and merges to `main` do not start another CI run. Flutter/browser integration, race detection, and fuzzing are available through the manual **Extended verification** workflow and the local commands below. Windows binaries and installation are currently outside the release scope.
 
 The compiler has no third-party Go dependencies. Tests are separate from implementation under `tests/`.
 

@@ -78,7 +78,7 @@ These instructions apply to the entire repository. More specific `AGENTS.md` fil
 
 ## Verification and delivery
 
-- Keep routine GitHub Actions economical: one Linux runner, no OS matrices, and no duplicate feature-branch push plus pull-request runs. Retain meaningful compiler, generated-output, runtime, installer, and security-enforcement checks.
+- Keep routine GitHub Actions economical: one Linux runner, no OS matrices, and automatic checks only for ready pull requests. Do not trigger CI again on main/feature-branch pushes or merges; keep explicit manual runs available. Retain meaningful compiler, generated-output, runtime, installer, and security-enforcement checks.
 - Keep Flutter/browser integration, race detection, and fuzz campaigns available locally or through an explicit manual workflow; do not add them to every pull request without a demonstrated need and user agreement. Windows testing and release artifacts are out of scope until explicitly requested.
 - Keep verification output concise: capture verbose logs on disk, inspect only failing excerpts, and report short pass/fail summaries. During fixes, rerun targeted tests; run the full applicable suite once at the final verification stage unless new failures justify another run.
 
