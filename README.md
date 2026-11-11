@@ -20,15 +20,7 @@ Pin a version or choose another directory:
 curl -fsSL https://raw.githubusercontent.com/jonace-mpelule/fQL/main/install.sh | sh -s -- --version 0.1.0-dev.3
 ```
 
-Windows PowerShell:
-
-```powershell
-$installer = Join-Path $env:TEMP 'fql-install.ps1'
-Invoke-WebRequest https://raw.githubusercontent.com/jonace-mpelule/fQL/main/install.ps1 -OutFile $installer
-& $installer
-```
-
-Or download the platform archive from [GitHub Releases](https://github.com/jonace-mpelule/fQL/releases). The default installer chooses the latest stable release, falling back to the newest published preview when there is no stable release. Run it again to upgrade; use `--no-modify-path` (PowerShell: `-NoModifyPath`) to manage PATH yourself. Only the official Firestore package and normal Firebase configuration are needed in your Flutter project.
+Or download the platform archive from [GitHub Releases](https://github.com/jonace-mpelule/fQL/releases). The default installer chooses the latest stable release, falling back to the newest published preview when there is no stable release. Run it again to upgrade; use `--no-modify-path` to manage PATH yourself. Only the official Firestore package and normal Firebase configuration are needed in your Flutter project.
 
 ## Try it
 
@@ -128,6 +120,8 @@ All project commands accept `--project PATH`; the default is the current directo
 
 ## Develop and verify
 
+Routine CI uses one Linux job for compiler checks, generated-artifact freshness, Unix installer tests, TypeScript compilation/runtime tests, and Firestore rules enforcement. It runs on pull requests and pushes to `main`, avoiding duplicate branch/PR runs. Flutter/browser integration, race detection, and fuzzing are available through the manual **Extended verification** workflow and the local commands below. Windows binaries and installation are currently outside the release scope.
+
 The compiler has no third-party Go dependencies. Tests are separate from implementation under `tests/`.
 
 ```sh
@@ -164,7 +158,7 @@ gh auth login
 make release VERSION=0.1.0-dev.3
 ```
 
-Start from a clean, committed checkout that has been pushed to the official repository. The command runs release/installer checks, builds five platform archives, verifies the native binary, uploads eight assets into a draft, downloads and verifies the uploaded bytes, and only then publishes. Preview versions are marked prereleases. Published versions cannot be overwritten; a failed draft upload can be resumed from the same source commit.
+Start from a clean, committed checkout that has been pushed to the official repository. The command runs release/installer checks, builds four macOS/Linux platform archives, verifies the native binary, uploads six assets into a draft, downloads and verifies the uploaded bytes, and only then publishes. Preview versions are marked prereleases. Published versions cannot be overwritten; a failed draft upload can be resumed from the same source commit.
 
 The **Publish release** GitHub Actions workflow provides the same flow with a version input; its GitHub token needs only the configured repository contents permission. Release checks do not run Flutter or Firebase tests. Choose a new version for every published release. Maintainers need Go, Make, Python 3, and authenticated `gh`; users only need the installer and standard OS download/archive tools. Checksums provide integrity checking, not a signing guarantee.
 

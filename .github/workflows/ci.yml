@@ -2,23 +2,21 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  go:
-    name: Go (${{ matrix.os }})
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+  checks:
+    name: Core checks
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
@@ -28,45 +26,8 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
-      - name: Verify modules
-        run: |
-          go mod download
-          go mod verify
-      - name: Check formatting
-        shell: bash
-        run: |
-          files="$(gofmt -l cmd internal tests tools)"
-          if [ -n "$files" ]; then
-            printf '%s\n' "$files"
-            exit 1
-          fi
-      - run: go vet ./...
-      - run: go test ./...
-      - name: Race and fuzz checks
-        if: runner.os == 'Linux'
-        run: |
-          go test -race ./...
-          go test ./tests/compiler -run='^$' -fuzz=FuzzParser -fuzztime=15s
-          go test ./tests/compiler -run='^$' -fuzz=FuzzPolicyParser -fuzztime=5s
-      - run: go build -trimpath ./cmd/fql
-      - run: go run ./cmd/fql generate --project examples/flutter --check
-      - run: go run ./cmd/fql generate --project tests/dart --check
-      - run: go run ./cmd/fql generate --project tests/typescript --check
-      - run: go run ./cmd/fql format --project examples/flutter --check
-      - run: go run ./cmd/fql format --project tests/dart --check
-
-  integration:
-    name: Generated Dart and Firebase emulators
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          persist-credentials: false
-      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
-        with:
-          go-version-file: go.mod
-          cache: false
+      - name: Compiler, generated artifacts, and Unix installer
+        run: make check installer-test
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version-file: .nvmrc
@@ -75,46 +36,8 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Install pinned Flutter SDK
-        shell: bash
-        run: |
-          git clone --depth 1 --branch 3.41.9 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
-          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
-      - run: flutter --version
-      - run: npm ci --no-fund
-      - run: npx playwright install --with-deps chromium
-      - run: make generate-check dart-check
-      - name: Verify Dart formatting
-        run: dart format --output=none --set-exit-if-changed examples/flutter/lib tests/dart
-      - run: npm run test:typescript
-      - run: npm run test:typescript:emulator
-      - run: npm run test:rules
-      - run: npm run test:integration
-      - run: npm run test:audit
-      - name: Compile Flutter example
-        working-directory: examples/flutter
-        run: flutter build web --no-pub
-
-  installers:
-    name: Installer (${{ matrix.os }})
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          persist-credentials: false
-      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
-        with:
-          go-version-file: go.mod
-          cache: false
-      - name: Unix installer
-        if: runner.os != 'Windows'
-        run: make installer-test
-      - name: Windows installer
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: ./tests/install/windows_test.ps1
+      - run: npm ci --no-fund --no-audit
+      - name: TypeScript compilation and runtime
+        run: npm run test:typescript
+      - name: Firestore security enforcement
+        run: npm run test:rules

@@ -79,7 +79,7 @@ determinism and safe target switching while retaining handwritten files.
 A single synthetic emulator integration scenario is provided as
 `npm run test:typescript:emulator` after `npm run test:typescript`. Its local run
 was blocked before test execution by the Firestore emulator download, which was
-stopped rather than left running. It is wired into CI but is not claimed as
+stopped rather than left running. It is available in manual Extended verification but is not claimed as
 passing evidence here. No React Native/Expo device run, durable native cache,
 production operation, or full existing Dart/emulator suite was run for this
 change. The target uses the modular Firebase JavaScript SDK, whose React Native
@@ -93,8 +93,17 @@ Verified locally on macOS arm64 with the pinned Go/Node/Java/Firestore emulator 
 - `npm run test:rules`: 18 tests passed (nine existing rule scenarios and nine declarative-policy scenarios). Tests compile rules from a mixed `.fql`/`.fQL` project at runtime, then exercise raw SDK requests so generated client checks cannot mask rules failures.
 - Policy scenarios cover accepted device access; anonymous/UID/device impersonation; missing, malformed, stale, or revoked claims; suspension and missing/malformed related documents; block records; expiration, including equality with server request time; the full mailbox query and rejection when each required predicate is omitted; independent get/list grants; create ownership and protected partial updates; negation/disjunction guards; bool/float claims and calendar validity; and coordinated/rejected batch and transaction writes using getAfter.
 - Compiler/project/format/diff tests cover source-located semantic errors, cross-file names, recursive policies, bounded expansion/access calls, invalid lookup IDs, mixed extension discovery, lowercase scaffolding, deterministic generation, and source-independent policy/claim diff baselines.
-- A bounded five-second `FuzzPolicyParser` run with two workers completed over 113,000 executions without a failure. CI includes this same short fuzz gate.
+- A bounded five-second `FuzzPolicyParser` run with two workers completed over 113,000 executions without a failure. The manual Extended verification workflow includes this same short fuzz gate.
 
 The mailbox query exposed an emulator limitation with explicit `is timestamp` guards. The generator uses exhaustive ordered timestamp comparisons against `request.time` instead: the complete query succeeds while malformed timestamps still deny, including under negation. The expiration equality test uses a server timestamp transform rather than assuming subsecond agreement between client and emulator clocks.
 
 No Dart/TypeScript runtime code changed; their generated output remains byte-identical, with only compiler compatibility metadata advancing to `0.1.0-dev.4`. Native-device, real credential issuance, hosted CI, index deployment/readiness, and production behavior were not reverified for this extension. The rules suite does not establish physical-device identity, cache erasure, or clock-driven listener eviction. Production use requires the application's trusted device/session issuance mechanism, review of generated rules/indexes, explicit deployment, and application-specific query/device acceptance. See [authorization contracts](authorization.md).
+
+
+## CI cost and release scope — 2026-11-11
+
+Routine CI now has one Ubuntu job, replacing the three-OS Go and installer matrices and automatic Flutter/browser integration. Pull requests and pushes to main trigger CI; feature-branch pushes do not create duplicate runs. The retained checks are `make check installer-test`, TypeScript compilation/runtime tests, and Firestore security-rules tests. Flutter analysis/tests/browser integration, race detection, and parser fuzzing remain available in the explicitly dispatched Extended verification workflow. No schedules or automatic extended runs are configured.
+
+Windows binaries, ZIP packaging, the PowerShell installer, and its test have been removed. New release packages contain four macOS/Linux archives (arm64/amd64), install.sh, and SHA256SUMS. Existing published releases were not modified.
+
+Local validation for this change: workflow YAML parsed successfully; `make check installer-test` passed, including all six installer tests; TypeScript compilation and two runtime tests passed; the release builder produced four real archives, verified checksums and archive contents, and ran the native CLI through init/validate/format/generate/check/diff with an empty PATH. No production release was published. Hosted CI for this revision is reported separately in the pull request; expensive manual verification was not rerun for these workflow/packaging changes.

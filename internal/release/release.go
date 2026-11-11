@@ -35,7 +35,7 @@ func ValidateVersion(v string) error {
 	return nil
 }
 func Assets(v string) []string {
-	return []string{"fql_" + v + "_darwin_arm64.tar.gz", "fql_" + v + "_darwin_amd64.tar.gz", "fql_" + v + "_linux_arm64.tar.gz", "fql_" + v + "_linux_amd64.tar.gz", "fql_" + v + "_windows_amd64.zip", "install.sh", "install.ps1", "SHA256SUMS"}
+	return []string{"fql_" + v + "_darwin_arm64.tar.gz", "fql_" + v + "_darwin_amd64.tar.gz", "fql_" + v + "_linux_arm64.tar.gz", "fql_" + v + "_linux_amd64.tar.gz", "install.sh", "SHA256SUMS"}
 }
 func Verify(dir, v string) error {
 	if e := ValidateVersion(v); e != nil {
