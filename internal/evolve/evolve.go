@@ -43,6 +43,7 @@ func Canonical(s schema.Schema) schema.Schema {
 		s.Models[i].Policies = append([]schema.Policy(nil), s.Models[i].Policies...)
 		for j := range s.Models[i].Policies {
 			s.Models[i].Policies[j].Position = schema.Position{}
+			s.Models[i].Policies[j].Expression = canonicalExpression(s.Models[i].Policies[j].Expression)
 		}
 		sort.Slice(s.Models[i].Policies, func(a, b int) bool { return s.Models[i].Policies[a].Operation < s.Models[i].Policies[b].Operation })
 	}
@@ -55,7 +56,37 @@ func Canonical(s schema.Schema) schema.Schema {
 	for i := range s.Enums {
 		s.Enums[i].Position = schema.Position{}
 	}
+	s.ClaimBlocks = nil
+	s.Claims = append([]schema.Claim(nil), s.Claims...)
+	for i := range s.Claims {
+		s.Claims[i].Position = schema.Position{}
+	}
+	sort.Slice(s.Claims, func(i, j int) bool { return s.Claims[i].Name < s.Claims[j].Name })
+	s.NamedPolicies = append([]schema.NamedPolicy(nil), s.NamedPolicies...)
+	for i := range s.NamedPolicies {
+		n := &s.NamedPolicies[i]
+		n.Position = schema.Position{}
+		n.Parameters = append([]schema.Parameter(nil), n.Parameters...)
+		for j := range n.Parameters {
+			n.Parameters[j].Position = schema.Position{}
+		}
+		n.Expression = canonicalExpression(n.Expression)
+	}
+	sort.Slice(s.NamedPolicies, func(i, j int) bool { return s.NamedPolicies[i].Name < s.NamedPolicies[j].Name })
 	return s
+}
+func canonicalExpression(in *schema.Expression) *schema.Expression {
+	if in == nil {
+		return nil
+	}
+	x := *in
+	x.Position = schema.Position{}
+	x.Value.Position = schema.Position{}
+	x.Args = nil
+	for _, a := range in.Args {
+		x.Args = append(x.Args, canonicalExpression(a))
+	}
+	return &x
 }
 
 type Change struct {
@@ -155,6 +186,12 @@ func Compare(before, after schema.Schema) Report {
 			add(name, "added", "compatible", "New model/collection")
 		}
 	}
+	if signature(before.Claims) != signature(after.Claims) {
+		add("claims", "changed", "review", "Trusted authentication claim declarations changed; review token issuance and authorization")
+	}
+	if signature(before.NamedPolicies) != signature(after.NamedPolicies) {
+		add("policies", "changed", "review", "Reusable authorization policies changed; review every affected operation and query")
+	}
 	if signature(before.Enums) != signature(after.Enums) {
 		add("enums", "changed", "review", "Enum definitions changed; older clients can reject new stored members")
 	}
@@ -214,6 +251,37 @@ func Baseline(path string) (schema.Schema, error) {
 	for _, object := range m.Baseline.Objects {
 		if !bounded(object.Fields, 0) {
 			return schema.Schema{}, fmt.Errorf("baseline exceeds nesting/value budgets")
+		}
+	}
+	var boundedExpression func(*schema.Expression, int) bool
+	boundedExpression = func(x *schema.Expression, depth int) bool {
+		if x == nil {
+			return true
+		}
+		nodes++
+		if depth > 40 || nodes > 100000 {
+			return false
+		}
+		for _, a := range x.Args {
+			if !boundedExpression(a, depth+1) {
+				return false
+			}
+		}
+		return true
+	}
+	if len(m.Baseline.NamedPolicies) > 64 || len(m.Baseline.Claims) > 32 {
+		return schema.Schema{}, fmt.Errorf("baseline exceeds policy budgets")
+	}
+	for _, n := range m.Baseline.NamedPolicies {
+		if !boundedExpression(n.Expression, 0) {
+			return schema.Schema{}, fmt.Errorf("baseline exceeds policy expression budgets")
+		}
+	}
+	for _, model := range m.Baseline.Models {
+		for _, a := range model.Policies {
+			if !boundedExpression(a.Expression, 0) {
+				return schema.Schema{}, fmt.Errorf("baseline exceeds policy expression budgets")
+			}
 		}
 	}
 	return *m.Baseline, nil

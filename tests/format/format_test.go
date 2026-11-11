@@ -36,7 +36,7 @@ func TestInvalidGraphNeverRewritesAnyFile(t *testing.T) {
 	if e := project.Init(root); e != nil {
 		t.Fatal(e)
 	}
-	path := filepath.Join(root, "fQL/schemas/users.fQL")
+	path := filepath.Join(root, "fQL/schemas/users.fql")
 	before, e := os.ReadFile(path)
 	if e != nil {
 		t.Fatal(e)
@@ -55,7 +55,7 @@ func TestInvalidGraphNeverRewritesAnyFile(t *testing.T) {
 func TestCheckAndPermissionPreservation(t *testing.T) {
 	root := t.TempDir()
 	project.Init(root)
-	path := filepath.Join(root, "fQL/schemas/users.fQL")
+	path := filepath.Join(root, "fQL/schemas/users.fql")
 	source := []byte(`schema "0.1" model User{collection="users" fields{label string.required()}}`)
 	os.WriteFile(path, source, 0640)
 	os.Chmod(path, 0640)
@@ -101,4 +101,30 @@ func FuzzFormatting(f *testing.F) {
 			t.Fatalf("formatting was not idempotent: %v", e)
 		}
 	})
+}
+
+func TestFormatTypedPoliciesAndLowercaseFiles(t *testing.T) {
+	source := []byte(`schema "0.1" claims{deviceId string generation int} policy check(uid string){authenticated and not (auth.uid!=uid) and auth.claims.generation>=2} model Example{collection="examples" fields{ownerId string.required().immutable()} access{get=check(existing.ownerId) list=deny}}`)
+	out, e := formatter.Source("policy.fql", source)
+	if e != nil {
+		t.Fatal(e)
+	}
+	again, e := formatter.Source("policy.fql", out)
+	if e != nil || !bytes.Equal(out, again) {
+		t.Fatalf("policy formatting unstable: %v", e)
+	}
+	root := t.TempDir()
+	if e = project.Init(root); e != nil {
+		t.Fatal(e)
+	}
+	path := filepath.Join(root, "fQL/schemas/policy.fql")
+	if e = os.WriteFile(path, source, 0644); e != nil {
+		t.Fatal(e)
+	}
+	if e = formatter.Project(root, false); e != nil {
+		t.Fatal(e)
+	}
+	if e = formatter.Project(root, true); e != nil {
+		t.Fatal(e)
+	}
 }

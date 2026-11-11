@@ -5,6 +5,7 @@ import (
 	"github.com/jonace-mpelule/fQL/internal/schema"
 	"github.com/jonace-mpelule/fQL/internal/syntax"
 	"github.com/jonace-mpelule/fQL/internal/validate"
+	"strings"
 	"testing"
 )
 
@@ -30,5 +31,22 @@ func TestDiffIgnoresLocationsAndFlagsBreakingChanges(t *testing.T) {
 	r := evolve.Compare(a, b)
 	if !r.Breaking || !r.Review || len(r.Changes) != 2 {
 		t.Fatalf("unexpected report: %+v", r)
+	}
+}
+
+func TestPolicyDiffsIgnoreLocationsAndReportTrustedChanges(t *testing.T) {
+	source := `schema "0.1" claims {deviceId string} policy device(value string) {auth.claims.deviceId == value} model Example {collection="examples" fields{deviceId string.required()} access{get = device(existing.deviceId)}}`
+	a := parsed(t, source)
+	b := parsed(t, "// moved\n"+source)
+	if changes := evolve.Compare(a, b).Changes; len(changes) != 0 {
+		t.Fatalf("locations changed baseline: %+v", changes)
+	}
+	b = parsed(t, strings.Replace(source, "== value", "!= value", 1))
+	if r := evolve.Compare(a, b); !r.Review {
+		t.Fatal("named policy change missing authorization review")
+	}
+	b = parsed(t, strings.Replace(source, "claims {deviceId string}", "claims {deviceId string generation int}", 1))
+	if r := evolve.Compare(a, b); !r.Review {
+		t.Fatal("claim change missing authorization review")
 	}
 }

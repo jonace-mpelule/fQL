@@ -9,7 +9,9 @@
 | Defaults | Missing create inputs only | Validate supplied document; never insert values |
 | Immutable fields | Update builders omit setters; runtime rejects attempted updates | Reject affected immutable keys |
 | Unknown fields | Reject input and stored unknown keys | Reject unknown stored keys on create/update |
-| Authorization | Surface SDK denial; no security guarantee from client checks | Explicit policy per operation; omitted policy denies |
+| Authorization | Surface SDK denial; no security guarantee from client checks | Typed expressions per operation, separate get/list, default denial |
+| Typed auth claims / named policies | No local authorization or token issuance | Explicit claim types, bounded acyclic policy expansion; missing/invalid accessed security inputs deny |
+| Related-document lookups / post-state checks | No hidden client lookups | Typed get/exists/getAfter; operation and aggregate rules access budgets apply |
 | Existing malformed documents | Error on read/query/listener decoding | No retroactive cleanup or structural read filtering |
 | Enums / objects / bounded lists | Typed immutable values and recursive codecs | Exact maps and unrolled bounded-element checks |
 | Managed timestamps | Explicit pending/confirmed wrappers; managed writes | Request-time equality and created-field immutability |
@@ -58,3 +60,7 @@ uses Firebase JavaScript SDK promises/callback listeners rather than Dart future
 and streams. Optional values use `undefined`; explicit null remains `null`.
 See [TypeScript contracts](typescript.md) for mappings, unsubscribe handling,
 React Native persistence limits, and SDK compatibility.
+
+## Declarative policy boundaries
+
+[Authorization contracts](authorization.md) specify claim issuance, lookup costs, get/list compatibility, strict input guards under negation/disjunction, query requirements, and atomic state checks. Server revocation does not erase cached data or guarantee time-driven listener eviction. Policies do not attest physical-device identity, authorize privileged backend writes, or replace resulting-document validation.

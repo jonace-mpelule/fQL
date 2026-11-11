@@ -126,6 +126,10 @@ func policy(m schema.Model, op string) string {
 		if a.Operation != op {
 			continue
 		}
+		if a.Expression != nil {
+			value, _ := expressionPolicy(a.Expression)
+			return value
+		}
 		switch a.Kind {
 		case "authenticated":
 			return "request.auth != null"
@@ -145,6 +149,16 @@ func policy(m schema.Model, op string) string {
 
 // Firestore renders complete, default-deny rules and explicit index configuration.
 func Firestore(s schema.Schema) ([]byte, []byte, error) {
+	// Fail before any artifacts are prepared; render only validated, bounded trees.
+	for _, m := range s.Models {
+		for _, a := range m.Policies {
+			if a.Expression != nil {
+				if _, e := expressionPolicy(a.Expression); e != nil {
+					return nil, nil, e
+				}
+			}
+		}
+	}
 	var b strings.Builder
 	b.WriteString(header + `rules_version = '2';
 service cloud.firestore {
@@ -189,7 +203,15 @@ service cloud.firestore {
 			}
 		}
 		fmt.Fprintf(&b, "        return d.keys().hasOnly([%s]) && d.keys().hasAll([%s])\n          && %s;\n      }\n", strings.Join(names, ", "), strings.Join(required, ", "), strings.Join(conditions, "\n          && "))
-		fmt.Fprintf(&b, "      allow read: if %s;\n      allow create: if (%s) && valid(request.resource.data);\n      allow update: if (%s) && valid(request.resource.data) && !request.resource.data.diff(resource.data).affectedKeys().hasAny([%s]);\n      allow delete: if %s;\n    }\n", policy(m, "read"), withConditions(policy(m, "create"), created), withConditions(policy(m, "update"), updated), strings.Join(immutable, ", "), policy(m, "delete"))
+		readRules := "      allow read: if " + policy(m, "read") + ";\n"
+		for _, a := range m.Policies {
+			if a.Operation == "get" || a.Operation == "list" {
+				readRules = "      allow get: if " + policy(m, "get") + ";\n      allow list: if " + policy(m, "list") + ";\n"
+				break
+			}
+		}
+		b.WriteString(readRules)
+		fmt.Fprintf(&b, "      allow create: if (%s) && valid(request.resource.data);\n      allow update: if (%s) && valid(request.resource.data) && !request.resource.data.diff(resource.data).affectedKeys().hasAny([%s]);\n      allow delete: if %s;\n    }\n", withConditions(policy(m, "create"), created), withConditions(policy(m, "update"), updated), strings.Join(immutable, ", "), policy(m, "delete"))
 		for _, idx := range m.Indexes {
 			i := index{CollectionGroup: m.Collection, QueryScope: "COLLECTION"}
 			for _, f := range idx {

@@ -157,7 +157,7 @@ func run() error {
 	}
 	prerelease := strings.Contains(*version, "-")
 	if !exists {
-		notes := fmt.Sprintf("FQL %s\n\nGo compiler and CLI with generated Dart clients, schema validation, Security Rules/indexes, enums, embedded data, managed timestamps, atomic writes, formatting, diffs, and read-only audits.\n\nInstall on macOS/Linux:\n```sh\ncurl -fsSL https://raw.githubusercontent.com/%s/main/install.sh | sh -s -- --version %s\n```\n\nWindows: download and run install.ps1, or see the README. Archives and installers are covered by SHA256SUMS. No Go or Node.js is required to use the CLI.\n\nDevelopment release: native Android/iOS acceptance and production deployments remain separate verification boundaries.\n\nSource commit: %s\n", tag, release.Repository, *version, sha)
+		notes := fmt.Sprintf("FQL %s\n\nGo compiler and CLI with generated Dart clients, schema validation, Security Rules/indexes, enums, embedded data, managed timestamps, atomic writes, formatting, diffs, and read-only audits.\n\nInstall on macOS/Linux:\n```sh\ncurl -fsSL https://raw.githubusercontent.com/%s/main/install.sh | sh -s -- --version %s\n```\n\nArchives and installers are covered by SHA256SUMS. No Go or Node.js is required to use the CLI.\n\nDevelopment release: native Android/iOS acceptance and production deployments remain separate verification boundaries.\n\nSource commit: %s\n", tag, release.Repository, *version, sha)
 		f, e := os.CreateTemp("", "fql-release-notes-*.md")
 		if e != nil {
 			return e

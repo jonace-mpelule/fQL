@@ -20,7 +20,7 @@ case "$install_dir" in /*) ;; *) fail 'installation directory must be an absolut
 case "$install_dir" in *'
 '*) fail 'installation directory cannot contain a newline' ;; esac
 for tool in curl tar awk grep sed uname mktemp chmod cp mv mkdir rm head dirname; do need "$tool"; done
-case "$(uname -s)" in Darwin) os=darwin ;; Linux) os=linux ;; *) fail 'supported systems: macOS and Linux; Windows users should run install.ps1' ;; esac
+case "$(uname -s)" in Darwin) os=darwin ;; Linux) os=linux ;; *) fail 'supported systems: macOS and Linux' ;; esac
 case "$(uname -m)" in arm64|aarch64) arch=arm64 ;; x86_64|amd64) arch=amd64 ;; *) fail 'supported CPU architectures: arm64 and amd64' ;; esac
 if command -v sha256sum >/dev/null 2>&1; then hash_tool=sha256sum
 elif command -v shasum >/dev/null 2>&1; then hash_tool=shasum

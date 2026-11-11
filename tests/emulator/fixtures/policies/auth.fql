@@ -1,0 +1,42 @@
+schema "0.1"
+
+claims {
+  deviceId string
+  generation int
+  staff bool
+  weight float
+}
+
+policy activeDeviceFor(uid string, device string, generation int) {
+  authenticated
+  and auth.uid == uid
+  and auth.claims.deviceId == device
+  and auth.claims.generation == generation
+  and get(Account, uid).deviceId == device
+  and get(Account, uid).generation == generation
+  and get(Account, uid).active == true
+}
+
+policy noBlock(uid string) {
+  not exists(Block, uid)
+}
+
+model Account {
+  collection = "accounts"
+  fields {
+    deviceId string.required()
+    generation int.required()
+    active bool.required()
+  }
+}
+
+model Block {
+  collection = "blocks"
+  fields {
+    reason string.required()
+  }
+}
+
+policy privileged(staff bool, weight float) {
+  staff or weight >= 0.5
+}

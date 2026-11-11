@@ -1,0 +1,29 @@
+schema "0.1"
+
+policy companionChanged(uid string) {
+  getAfter(Companion, uid).generation > get(Companion, uid).generation
+}
+
+model Companion {
+  collection = "companions"
+  fields {
+    generation int.required().min(0).max(100)
+  }
+  access {
+    get = owner(id)
+    update = owner(id)
+  }
+}
+
+model AtomicRecord {
+  collection = "atomicRecords"
+  fields {
+    ownerId string.required().immutable()
+    generation int.required().min(0).max(100)
+  }
+  access {
+    get = owner(ownerId)
+    create = owner(ownerId) and companionChanged(incoming.ownerId)
+    update = owner(ownerId) and companionChanged(existing.ownerId)
+  }
+}

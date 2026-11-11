@@ -36,6 +36,9 @@ func Source(file string, source []byte) ([]byte, error) {
 		return nil, e
 	}
 	starts := map[int]bool{}
+	for _, c := range ast.Claims {
+		starts[c.Position.Offset] = true
+	}
 	for _, m := range ast.Models {
 		for _, f := range m.Fields {
 			starts[f.Position.Offset] = true
@@ -128,13 +131,24 @@ func Source(file string, source []byte) ([]byte, error) {
 			line = strings.TrimRight(line, " ")
 			add(")")
 			paren--
-		case ".", "<", ">":
+		case ".":
 			line = strings.TrimRight(line, " ")
 			add(text)
+		case "<", ">", "!":
+			line = strings.TrimRight(line, " ")
+			if text != "!" && paren == 0 && ctx == "fields" {
+				add(text)
+			} else {
+				add(" " + text + " ")
+			}
 		case ",":
 			line = strings.TrimRight(line, " ")
 			add(", ")
 		case "=":
+			if prev == "=" || prev == "!" || prev == "<" || prev == ">" {
+				line = strings.TrimRight(line, " ") + "= "
+				break
+			}
 			line = strings.TrimRight(line, " ")
 			add(" = ")
 		case "-":
@@ -192,7 +206,7 @@ func Project(root string, check bool) error {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() || filepath.Ext(path) != ".fQL" {
+		if d.IsDir() || !project.IsSchemaPath(path) {
 			return nil
 		}
 		if e = project.SafePath(p.Root, path); e != nil {

@@ -79,7 +79,19 @@ func InitTarget(root, target string) error {
 	if e != nil {
 		return e
 	}
-	files := []struct{ path, content string }{{"fQL/fql.config", config}, {"fQL/schemas/users.fQL", UserSchema}, {"fQL/schemas/messages.fQL", MessageSchema}}
+	files := []struct{ path, content string }{{"fQL/fql.config", config}, {"fQL/schemas/users.fql", UserSchema}, {"fQL/schemas/messages.fql", MessageSchema}}
+	// Legacy sample spellings must also be protected when scaffolding.
+	for _, name := range []string{"users.fQL", "messages.fQL"} {
+		path := filepath.Join(root, "fQL", "schemas", name)
+		if e = SafePath(root, path); e != nil {
+			return e
+		}
+		if _, e = os.Lstat(path); e == nil {
+			return fmt.Errorf("refusing to duplicate existing schema %s", name)
+		} else if !os.IsNotExist(e) {
+			return e
+		}
+	}
 	for _, f := range files {
 		path := filepath.Join(root, filepath.FromSlash(f.path))
 		if e = SafePath(root, path); e != nil {

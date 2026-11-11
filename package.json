@@ -2,7 +2,7 @@
   "name": "fql-verification",
   "private": true,
   "scripts": {
-    "test:rules": "firebase emulators:exec --project demo-fql --only firestore --config firebase.json \"node --test --test-concurrency=1 tests/emulator/rules.test.mjs\"",
+    "test:rules": "firebase emulators:exec --project demo-fql --only firestore --config firebase.json \"node --test --test-concurrency=1 tests/emulator/rules.test.mjs tests/emulator/policies.test.mjs\"",
     "test:integration": "firebase emulators:exec --project demo-fql --only firestore,auth --config firebase.json \"node scripts/test-integration.mjs\"",
     "test:audit": "firebase emulators:exec --project demo-fql --only firestore --config firebase.json \"node --test tests/emulator/audit.test.mjs\"",
     "test:typescript": "tsc -p tests/typescript/tsconfig.json && node --test tests/typescript/runtime.test.mjs",

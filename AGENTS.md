@@ -71,8 +71,15 @@ These instructions apply to the entire repository. More specific `AGENTS.md` fil
 - Define language, configuration, internal representation, runtime, and generator compatibility intentionally. Diagnose unsupported versions instead of guessing.
 - Distribute verified binaries so end users do not need Go installed. Version runtime packages and generated code compatibility together where necessary.
 
+## Branches and pull requests
+
+- Use neutral, task-focused branch names (for example `feature/authorization` or `fix/release-packaging`), commit messages, and pull request titles/descriptions.
+- Do not reference the agent, assistant, or automation vendor in branch names, commits, or pull requests, including self-references, signatures, and co-author trailers.
+
 ## Verification and delivery
 
+- Keep routine GitHub Actions economical: one Linux runner, no OS matrices, and no duplicate feature-branch push plus pull-request runs. Retain meaningful compiler, generated-output, runtime, installer, and security-enforcement checks.
+- Keep Flutter/browser integration, race detection, and fuzz campaigns available locally or through an explicit manual workflow; do not add them to every pull request without a demonstrated need and user agreement. Windows testing and release artifacts are out of scope until explicitly requested.
 - Keep verification output concise: capture verbose logs on disk, inspect only failing excerpts, and report short pass/fail summaries. During fixes, rerun targeted tests; run the full applicable suite once at the final verification stage unless new failures justify another run.
 
 - Inspect existing code and repository status before editing. Preserve unrelated user changes and avoid opportunistic cleanup.
