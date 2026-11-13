@@ -1,5 +1,7 @@
 # TypeScript target
 
+[User handbook](README.md) · [Quickstart](../README.md#quickstart)
+
 Set `target = "typescript"` in `fQL/fql.config`, or scaffold with
 `fql init --target typescript`. The default output is `src/data/fql/fql.ts`.
 The same recursively discovered `.fQL` schema and validated compiler graph

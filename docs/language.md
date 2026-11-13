@@ -1,5 +1,7 @@
 # FQL language 0.1
 
+[User handbook](README.md) · [Quickstart](../README.md#quickstart)
+
 Every `.fql` or `.fQL` file starts with `schema "0.1"`. Named `enum` and `object` definitions, bounded `list<Type>` fields, and managed timestamp modifiers are specified in [extensions](extensions.md). Definitions across recursively discovered files form one schema. Declaration order does not affect name resolution. Comments use `//` or `/* ... */`. Strings use double quotes and Go-style escapes. Numeric literals use decimal notation; integer defaults use integral decimal literals. Semicolons and executable expressions are not supported.
 
 ```fql

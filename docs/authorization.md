@@ -1,5 +1,7 @@
 # Declarative authorization
 
+[User handbook](README.md) · [Quickstart](../README.md#quickstart)
+
 This document defines the implemented declarative-policy extension. Local test evidence and remaining deployment/device boundaries are recorded in [verification notes](verification.md). The earlier behavioral pseudocode is not FQL syntax.
 
 ## Language and types

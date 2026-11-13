@@ -10,15 +10,17 @@
 
 <p align="center">
   <a href="#install-the-cli">Install</a> ·
-  <a href="#try-it">Dart / Flutter</a> ·
-  <a href="#typescript--react-native">TypeScript</a> ·
-  <a href="docs/language.md">Language guide</a> ·
+  <a href="#quickstart">Quickstart</a> ·
+  <a href="docs/README.md">User handbook</a> ·
+  <a href="docs/schemas.md">Write a schema</a> ·
   <a href="docs/enforcement.md">Enforcement boundaries</a>
 </p>
 
 ---
 
-FQL compiles separate schema files into an Ent-inspired, typed Dart or TypeScript client for Cloud Firestore, Security Rules, and index configuration. The compiler and CLI are Go; application code uses the official Firebase SDK for its target. No runtime server is required.
+FQL turns schema files into a typed Dart or TypeScript client for Cloud Firestore, plus Security Rules and index configuration. Define your document fields, constraints, and access policies once; use generated models, builders, and typed queries in your application.
+
+The developer experience is inspired by Ent. FQL runs during development or CI; your app uses the official Firebase SDK without an FQL server or an extra FQL runtime package.
 
 ```mermaid
 flowchart LR
@@ -29,177 +31,204 @@ flowchart LR
     style compiler fill:#FFD43B,stroke:#302A24,color:#302A24,stroke-width:2px
 ```
 
-| ✍️ Define | ⚡ Generate | 🔥 Build |
-| --- | --- | --- |
-| Separate schema files with explicit types, validation, and authorization policies. | Typed models and operations, plus reviewable rules and index configuration. | CRUD, queries, subscriptions, batches, and transactions through official Firebase SDKs. |
+## What can I do with it?
 
-> **0.1 development release.** Generated validation helps catch mistakes; Security Rules enforce supported constraints and authorization for client requests. Review the [enforcement boundaries](docs/enforcement.md) before integration. Generation does not deploy Firebase artifacts or migrate data.
+| You define | FQL gives you |
+| --- | --- |
+| Models in separate `.fql` files | Typed models and collection repositories |
+| Field types, required/optional values, defaults, and bounds | Validation before writes and when decoding reads |
+| Enums, embedded objects, and bounded lists | Typed values and recursive validation |
+| Access policies and protected fields | Reviewable Firestore Security Rules |
+| Supported composite indexes | A generated Firestore index configuration |
+| Data operations in your app | Create, read, update, delete, queries, pagination, listeners, batches, and transactions |
 
-<details>
-<summary><strong>Release scope and current limits</strong></summary>
+**Status: 0.1 development release.** Dart/Flutter and TypeScript targets are implemented. TypeScript uses the modular Firebase JavaScript SDK, including in React Native/Expo; it does not accept `@react-native-firebase` instances, and this SDK has no Firestore persistent caching in React Native. See [target compatibility](docs/typescript.md) and [verification evidence](docs/verification.md).
 
-**Version: 0.1 development release.** Implemented: schemas, validation, Dart generation, CRUD, queries, subscriptions, rules/index generation, and CLI workflows. Includes typed enums, nested objects/bounded lists, managed server timestamps, atomic batches/transactions, schema diffs, read-only audits, and validating formatting. Includes declarative authorization expressions, typed auth claims, related-document lookups, reusable policies, separate get/list grants, and atomic post-state checks; see [authorization](docs/authorization.md) for enforcement and query limits. Relationships, uniqueness, migrations, and other field transforms remain outside this release. Read the [enforcement boundaries](docs/enforcement.md) before integration.
+FQL preserves Firestore's data model: it does not provide joins, foreign keys, uniqueness guarantees, or data migrations. Generated clients are not a security boundary; deployed Rules enforce supported constraints and client authorization. Admin/server SDKs bypass Rules. Read the [enforcement boundaries](docs/enforcement.md) before integrating.
 
-</details>
+## Find your way
+
+| I want to… | Start here |
+| --- | --- |
+| Get from installation to my first document | [Quickstart below](#quickstart) |
+| Define models, fields, defaults, and permissions | [Schema guide](docs/schemas.md) |
+| Read, update, query, paginate, or listen to data | [Data operations](docs/data-operations.md) |
+| Generate, deploy, change schemas, or fix an error | [Project workflow and troubleshooting](docs/workflow.md) |
+| Use claims, reusable policies, or related-document checks | [Authorization reference](docs/authorization.md) |
+| Browse all guides and reference material | [User handbook](docs/README.md) |
+| Run a complete local example | [Flutter emulator example](examples/flutter/README.md) |
+| Work on the compiler or publish a release | [Contributor guide](CONTRIBUTING.md) |
 
 ## Install the CLI
 
-macOS/Linux (no Go required):
+On macOS or Linux, no Go installation is required:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/jonace-mpelule/fQL/main/install.sh | sh
+fql version
 ```
 
-The installer selects your OS/CPU, verifies the archive checksum and executable version, and installs into `~/.local/bin`. It adds a PATH entry to the supported shell profile when needed; follow its printed command for the current terminal. It never uses sudo.
+The installer selects your OS/CPU, verifies the archive checksum and executable version, and installs into `~/.local/bin`. Follow its printed PATH command for the current terminal if needed. It never uses sudo. You can also download a binary from [GitHub Releases](https://github.com/jonace-mpelule/fQL/releases).
 
-Pin a version or choose another directory:
+Run the installer again to upgrade. It prefers a stable release, falling back to the newest published preview when none exists. To pin a published version, use `sh -s -- --version VERSION` instead of `sh`, replacing `VERSION` with the release version. Add `--no-modify-path` to manage PATH yourself. Windows distribution is currently outside the release scope.
+
+## Quickstart
+
+This walkthrough uses the `Message` and `User` models scaffolded by `fql init`. Choose one target for your existing app and run the CLI commands from the app's root directory.
+
+### 1. Set up Firebase and choose your target
+
+You need a Firebase project with a Cloud Firestore database and Firebase Authentication configured for your app. FQL does not create the Firebase project, initialize the SDK, or sign users in.
+
+**Dart / Flutter**
+
+Follow the official [Flutter Firebase setup](https://firebase.google.com/docs/flutter/setup), then add the application dependencies and scaffold FQL:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/jonace-mpelule/fQL/main/install.sh | sh -s -- --version 0.1.0-dev.3
+flutter pub add firebase_core cloud_firestore firebase_auth
+fql init --target dart
 ```
 
-Or download the platform archive from [GitHub Releases](https://github.com/jonace-mpelule/fQL/releases). The default installer chooses the latest stable release, falling back to the newest published preview when there is no stable release. Run it again to upgrade; use `--no-modify-path` to manage PATH yourself. Only the official Firestore package and normal Firebase configuration are needed in your Flutter project.
+**TypeScript / React Native / Expo**
 
-## Try it
-
-Build the CLI with Go 1.26.2 and Make:
-
-```sh
-make setup check
-./bin/fql init --target dart --project /path/to/flutter_app
-./bin/fql validate --project /path/to/flutter_app
-./bin/fql generate --project /path/to/flutter_app
-```
-
-In the Flutter app, add `cloud_firestore: ^7.1.0`, configure Firebase through the official FlutterFire workflow, and inject its SDK instance:
-
-```dart
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'data/fql/fql.dart';
-
-final db = FqlClient(FirebaseFirestore.instance);
-final message = await db.messages.create()
-    .setOwnerId(currentUserId)
-    .setBody('Hello')
-    .setCreatedAt(Timestamp.now())
-    .save();
-
-final changes = db.messages.query()
-    .where(MessageFields.ownerId.eq(currentUserId))
-    .orderBy(MessageFields.createdAt, descending: true)
-    .limit(50)
-    .watch();
-```
-
-Generated files belong in source control and must not be edited by hand. Generation does not deploy rules/indexes or migrate existing data. Review the generated Firebase artifacts and configure your own explicit deployment workflow. The initialized schemas use ownership policies; authenticate before accessing them.
-
-## TypeScript / React Native
+Follow the official [Firebase JavaScript setup](https://firebase.google.com/docs/web/setup), then:
 
 ```sh
 npm install firebase
 fql init --target typescript
+```
+
+These are alternatives: do not run both init commands in the same project. Init creates configuration and sample schemas; it refuses to overwrite existing files. See [project configuration](docs/workflow.md#configure-paths-and-targets) for an existing FQL project.
+
+### 2. Define a schema
+
+Open `fQL/schemas/messages.fql`. The scaffold already contains this working model; edit it as your application evolves:
+
+```fql
+schema "0.1"
+
+model Message {
+  collection = "messages"
+  fields {
+    ownerId string.required().immutable()
+    body string.required().minLength(1).maxLength(4000)
+    createdAt timestamp.required().immutable()
+    priority int.required().min(0).max(10).default(0)
+  }
+  access {
+    read = owner(ownerId)
+    create = owner(ownerId)
+    update = owner(ownerId)
+    delete = owner(ownerId)
+  }
+  indexes {
+    index(ownerId.asc, createdAt.desc)
+  }
+}
+```
+
+This defines documents in `messages`: an immutable owner UID, a nonempty body, a caller-supplied immutable timestamp, and a priority from 0 to 10 that defaults to 0 on create. String length bounds count UTF-8 bytes. The document ID is generated metadata, not a declared field.
+
+Only the signed-in owner may access each document. Queries must include the owner's UID; Rules do not filter other users' documents out for you. The index supports the owner-and-time query below. For server-generated timestamps, use [managed timestamp fields](docs/schemas.md#use-server-generated-timestamps) instead.
+
+Add more models in separate files under `fQL/schemas/`. Every file starts with `schema "0.1"`; files in nested directories compile together. Both `.fql` and `.fQL` are supported. Learn how to choose types, model optional values, and add permissions in the [schema guide](docs/schemas.md).
+
+### 3. Validate and generate
+
+```sh
+fql format
+fql validate
 fql generate
 ```
 
-TypeScript projects use `src/data/fql/fql.ts` by default:
-
-```ts
-import { getFirestore, Timestamp } from 'firebase/firestore';
-import { FqlClient, MessageFields } from './data/fql/fql';
-
-const db = new FqlClient(getFirestore(app));
-await db.messages.create().setOwnerId(uid).setBody('Hello')
-  .setCreatedAt(Timestamp.now()).save();
-
-const unsubscribe = db.messages.query()
-  .where(MessageFields.ownerId.eq(uid))
-  .orderBy(MessageFields.createdAt, 'desc').limit(50)
-  .watch(snapshot => console.log(snapshot.data), error => console.error(error));
-// Return unsubscribe from React useEffect to clean up the listener.
-```
-
-This target uses the modular Firebase JavaScript SDK, including in React Native
-and Expo. It does not accept `@react-native-firebase/firestore` instances.
-Firestore persistent caching is unavailable in React Native with this SDK.
-See the [TypeScript guide](docs/typescript.md) for semantics, setup, and limits.
-
-## End-user project layout
+The default layout after generation is:
 
 ```text
 fQL/
-  fql.config
-  fql.lock
+  fql.config                         # Target and project paths
+  fql.lock                           # Generated compatibility and artifact metadata
   schemas/
-    users.fql
+    users.fql                        # Your schema sources
     messages.fql
-lib/data/fql/fql.dart
+lib/data/fql/fql.dart                 # Dart target
+src/data/fql/fql.ts                   # TypeScript target (alternative to Dart)
 firebase/generated/
   firestore.rules
   firestore.indexes.json
 ```
 
-The compiler recursively discovers `.fql` and `.fQL` files, including nested folders. New projects use lowercase `.fql`; both spellings may coexist. Configuration lives outside model files. See the [language specification](docs/language.md) for syntax, types, and presence/default semantics.
+You get the client for your selected target, not both. Commit the schemas, configuration, lockfile, and generated artifacts. Edit the schemas and regenerate instead of editing generated files.
 
-## CLI
+### 4. Load the rules and indexes
 
-| Command | Behavior |
-| --- | --- |
-| `fql init --target dart` / `--target typescript` | Create configuration and separate sample schemas without overwriting files |
-| `fql validate` | Validate all schema files without generating output |
-| `fql generate` | Generate the configured client, rules, indexes, and compatibility metadata |
-| `fql generate --check` | Exit nonzero for missing/stale artifacts; never write |
-| `fql generate --watch` | Regenerate on changes and recover after source errors; Ctrl+C stops |
-| `fql format` / `fql format --check` | Validate the complete schema, then format files / check without writing |
-| `fql diff` | Explain effective changes against the last generated baseline; supports `--against`, `--check`, and `--json` |
-| `fql audit --firebase-project ID` | Explicit, bounded, read-only scan; supports `--model`, `--max-documents`, `--emulator`, and `--json` |
-| `fql help` / `fql version` | Show usage / build version |
+Generating files does not deploy them. Before using the app against a hosted database, review the generated Rules and indexes, point your Firebase configuration at them, and explicitly deploy them. The [deployment walkthrough](docs/workflow.md#deploy-rules-and-indexes) includes the `firebase.json` configuration and commands.
 
-All project commands accept `--project PATH`; the default is the current directory. Exit codes: 0 success, 1 operation/validation failure, 2 invalid usage; diff/audit additionally use 3 for detected changes/invalid documents and audit uses 4 for an incomplete scan. Paths stay within the project; generated outputs are staged and owned through the lockfile. See the specification for failure recovery and safety limits.
+For a local-only first run, use the [runnable emulator example](examples/flutter/README.md), which supplies synthetic Firebase configuration, sign-in, and a Flutter UI. A successful local run does not establish deployed security or native-device behavior.
 
-## Develop and verify
+### 5. Create and read a document
 
-Routine CI uses one Linux job for compiler checks, generated-artifact freshness, Unix installer tests, TypeScript compilation/runtime tests, and Firestore rules enforcement. It runs when a ready pull request is opened, updated, or reopened, when a draft becomes ready for review, or when explicitly requested manually. Draft PRs skip the job. Branch pushes, tags, and merges to `main` do not start another CI run. Flutter/browser integration, race detection, and fuzzing are available through the manual **Extended verification** workflow and the local commands below. Windows binaries and installation are currently outside the release scope.
+These examples belong in an asynchronous application function after Firebase initialization and sign-in. Pass `uid`, the authenticated user's UID; an arbitrary string will not satisfy the ownership policy. Dart imports assume a file under `lib/`; TypeScript imports assume a file under `src/`.
 
-The compiler has no third-party Go dependencies. Tests are separate from implementation under `tests/`.
+**Dart / Flutter**
 
-```sh
-make check                 # Go formatting, vet, tests, build, stale-artifact checks
-make test-race
-make coverage
-make dart-check            # Requires Flutter 3.41.9 / Dart 3.11.5
-make typescript-check      # Strict generated-code compilation + focused runtime checks
+```dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'data/fql/fql.dart';
+
+Future<void> createMessage(String uid) async {
+  final db = FqlClient(FirebaseFirestore.instance);
+  final message = await db.messages.create()
+      .setOwnerId(uid)
+      .setBody('Hello from FQL')
+      .setCreatedAt(Timestamp.now())
+      .save();
+
+  final snapshot = await db.messages.get(message.id);
+  print(snapshot.data.body);
+  print(snapshot.data.priority); // 0: create default
+}
 ```
 
-For integration tests, use Node 24.12.0 (`nvm use`), Java 21+, and Flutter:
+**TypeScript**
 
-```sh
-make setup-integration
-make emulator-test         # Generated Security Rules with real Firestore emulator
-make integration-test      # Generated Dart with real Flutter web SDK and emulators
-make audit-test            # Real Go audit CLI against synthetic emulator data
+```ts
+import { getFirestore, Timestamp } from 'firebase/firestore';
+import { FqlClient } from './data/fql/fql';
+
+export async function createMessage(uid: string) {
+  const db = new FqlClient(getFirestore()); // Uses your initialized default app.
+  const message = await db.messages.create()
+    .setOwnerId(uid)
+    .setBody('Hello from FQL')
+    .setCreatedAt(Timestamp.now())
+    .save();
+
+  const snapshot = await db.messages.get(message.id);
+  console.log(snapshot.data.body);
+  console.log(snapshot.data.priority); // 0: create default
+}
 ```
 
-`setup-integration` installs locked local npm dependencies, Flutter dependencies, and Playwright Chromium for automated web SDK testing. Chromium is not a runtime dependency of FQL or generated applications. Point `JAVA_HOME` and `PATH` at Java 21 if another Java version is your default.
+The scaffold also defines `User` with document-ID ownership. To create a profile, use `db.users.create(id: uid).setName('Alex').save()` in Dart or `db.users.create(uid).setName('Alex').save()` in TypeScript. Explicit-ID creates are create-only transactions: they read for existence, need connectivity and read permission, and fail when the document already exists. Use an update for an existing profile.
 
-The [Flutter example](examples/flutter/README.md) demonstrates the complete local workflow. [Verification notes](docs/verification.md) distinguish local tests, emulators, device acceptance, and deployment.
+### 6. Update, query, and listen
 
-## Distribution
+Continue with [data operations](docs/data-operations.md) for examples in both languages: partial updates, null versus removal, deletes, owner-scoped queries, pagination, live listeners with cleanup, batches, transactions, and error handling.
+
+For the Message model above, your first query is `db.messages.query().where(MessageFields.ownerId.eq(uid))`. Add ordering and a limit, then use `.all()` for a one-time result or `.watch()` for live changes. Dart watches return streams; TypeScript watches take success/error callbacks and return an unsubscribe function. The guide shows both complete forms.
+
+## The everyday workflow
+
+After editing schema files:
 
 ```sh
-make dist VERSION=0.1.0-dev.2
+fql format
+fql validate
+fql diff
+fql generate
+fql generate --check
 ```
 
-This builds local archives and installers with `SHA256SUMS`. To build, verify, and publish everything to GitHub:
+Review `diff` before generation, which advances its comparison baseline. Regeneration changes code and Firebase artifacts; it does not change stored documents. Review compatibility with existing data and older app versions, test the resulting rules, and explicitly deploy changed rules/indexes. Use `fql generate --check` in CI to detect stale or missing generated output without writing files.
 
-```sh
-gh auth login
-make release VERSION=0.1.0-dev.3
-```
-
-Start from a clean, committed checkout that has been pushed to the official repository. The command runs release/installer checks, builds four macOS/Linux platform archives, verifies the native binary, uploads six assets into a draft, downloads and verifies the uploaded bytes, and only then publishes. Preview versions are marked prereleases. Published versions cannot be overwritten; a failed draft upload can be resumed from the same source commit.
-
-The **Publish release** GitHub Actions workflow provides the same flow with a version input; its GitHub token needs only the configured repository contents permission. Release checks do not run Flutter or Firebase tests. Choose a new version for every published release. Maintainers need Go, Make, Python 3, and authenticated `gh`; users only need the installer and standard OS download/archive tools. Checksums provide integrity checking, not a signing guarantee.
-
-See [extension syntax and semantics](docs/extensions.md) for enums, embedded data, server timestamps, atomic operations, and CLI contracts. Run `fql format`, then review `fql diff`, before generating a changed schema. Production audits use `FQL_ACCESS_TOKEN` and incur reads; no production scan or data change runs automatically.
-
-See [AGENTS.md](AGENTS.md), [architecture](docs/architecture.md), and the [v0.1 checklist](docs/v0.1-features.md).
+For command options, configuration, schema evolution, audits, and common errors, see [project workflow](docs/workflow.md). For all supported features and their detailed contracts, browse the [user handbook](docs/README.md).

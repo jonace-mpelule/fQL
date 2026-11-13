@@ -1,5 +1,7 @@
 # v0.1 verification record
 
+[User handbook](README.md) · [Quickstart](../README.md#quickstart)
+
 Verified locally on macOS arm64, 2026-11-10. This record describes development-release evidence, not a production deployment or native-device certification.
 
 ## Environment

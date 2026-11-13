@@ -2,7 +2,7 @@
 
 This is an emulator-only runnable Flutter web application. It uses synthetic Firebase configuration for `demo-fql`, anonymous emulator authentication, and generated ownership rules. It does not connect to production Firebase.
 
-From the repository root, install development prerequisites described in the root README, then:
+For application setup and schema authoring, start with the [quickstart](../../README.md#quickstart) or [user handbook](../../docs/README.md). To run this repository example, install the development prerequisites in the [contributor guide](../../CONTRIBUTING.md#develop-and-verify), then run from the repository root:
 
 ```sh
 make setup-integration

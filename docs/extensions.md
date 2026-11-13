@@ -1,5 +1,7 @@
 # v0.1 extensions: semantics and contracts
 
+[User handbook](README.md) · [Quickstart](../README.md#quickstart)
+
 These extensions retain the `0.1` language/configuration version and require compiler compatibility `0.1.0-dev.2`. Generation upgrades lock metadata to format `2` with an effective-schema baseline for diffs. Old format-1 manifests remain readable for artifact ownership, but have no diff baseline.
 
 ## Named enums, objects, and bounded lists
