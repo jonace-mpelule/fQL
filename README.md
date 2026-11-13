@@ -1,8 +1,46 @@
-# FQL — Firestore Query Language
+<p align="center">
+  <img src="docs/assets/fql-mascot.png" width="240" alt="FQL mascot: a playful yellow flame smiling and waving" />
+</p>
+
+<h1 align="center">FQL — Firestore Query Language</h1>
+
+<p align="center">
+  <strong>Your Firestore schemas. Typed clients. One generation step.</strong>
+</p>
+
+<p align="center">
+  <a href="#install-the-cli">Install</a> ·
+  <a href="#try-it">Dart / Flutter</a> ·
+  <a href="#typescript--react-native">TypeScript</a> ·
+  <a href="docs/language.md">Language guide</a> ·
+  <a href="docs/enforcement.md">Enforcement boundaries</a>
+</p>
+
+---
 
 FQL compiles separate schema files into an Ent-inspired, typed Dart or TypeScript client for Cloud Firestore, Security Rules, and index configuration. The compiler and CLI are Go; application code uses the official Firebase SDK for its target. No runtime server is required.
 
+```mermaid
+flowchart LR
+    schemas["Your schema files<br/>fQL/schemas/"] --> compiler["FQL<br/>validate + generate"]
+    compiler --> clients["Typed clients<br/>Dart or TypeScript"]
+    compiler --> rules["Firestore<br/>Security Rules"]
+    compiler --> indexes["Firestore<br/>Index configuration"]
+    style compiler fill:#FFD43B,stroke:#302A24,color:#302A24,stroke-width:2px
+```
+
+| ✍️ Define | ⚡ Generate | 🔥 Build |
+| --- | --- | --- |
+| Separate schema files with explicit types, validation, and authorization policies. | Typed models and operations, plus reviewable rules and index configuration. | CRUD, queries, subscriptions, batches, and transactions through official Firebase SDKs. |
+
+> **0.1 development release.** Generated validation helps catch mistakes; Security Rules enforce supported constraints and authorization for client requests. Review the [enforcement boundaries](docs/enforcement.md) before integration. Generation does not deploy Firebase artifacts or migrate data.
+
+<details>
+<summary><strong>Release scope and current limits</strong></summary>
+
 **Version: 0.1 development release.** Implemented: schemas, validation, Dart generation, CRUD, queries, subscriptions, rules/index generation, and CLI workflows. Includes typed enums, nested objects/bounded lists, managed server timestamps, atomic batches/transactions, schema diffs, read-only audits, and validating formatting. Includes declarative authorization expressions, typed auth claims, related-document lookups, reusable policies, separate get/list grants, and atomic post-state checks; see [authorization](docs/authorization.md) for enforcement and query limits. Relationships, uniqueness, migrations, and other field transforms remain outside this release. Read the [enforcement boundaries](docs/enforcement.md) before integration.
+
+</details>
 
 ## Install the CLI
 
