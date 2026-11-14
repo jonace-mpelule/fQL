@@ -20,6 +20,7 @@ import (
 type Project struct {
 	Root, Source, Output, Firebase, Fingerprint, Target string
 	Schema                                              schema.Schema
+	SourceFiles                                         int
 }
 
 func Inside(root, path string) bool {
@@ -150,6 +151,7 @@ func Load(root string) (Project, error) {
 		return p, fmt.Errorf("no .fql or .fQL schemas found under %s", cfg.Schemas)
 	}
 	sort.Strings(files)
+	p.SourceFiles = len(files)
 	hash := sha256.New()
 	hash.Write(bytes.ReplaceAll(b, []byte("\r\n"), []byte("\n")))
 	p.Schema.Version = validate.Version

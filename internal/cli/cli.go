@@ -2,6 +2,7 @@
 package cli
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
@@ -41,6 +42,7 @@ Commands:
   version    Show the compiler version
 
 The default project is the current directory. Generated files are committed.
+--json is available on init, validate, generate, format, diff, and audit.
 --check never writes files. --watch regenerates and recovers after source errors.
 `
 
@@ -51,6 +53,20 @@ func Run(args []string, stdout, stderr io.Writer, version string) int {
 
 // RunContext supports cancellation of a watch session. Codes: 0 success, 1 failure, 2 usage.
 func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer, version string) int {
+	if len(args) == 0 || !workingCommand(args[0]) {
+		return runContext(ctx, args, stdout, stderr, version, newReport(""))
+	}
+	r := newReport(args[0])
+	r.stdout, r.stderr = stdout, stderr
+	var out, diagnostics bytes.Buffer
+	code := runContext(ctx, args, &out, &diagnostics, version, r)
+	if r.streaming {
+		return code
+	}
+	return r.finish(stdout, stderr, out.Bytes(), diagnostics.Bytes(), code)
+}
+
+func runContext(ctx context.Context, args []string, stdout, stderr io.Writer, version string, r *commandReport) int {
 	if len(args) == 0 {
 		return output(stdout, stderr, help)
 	}
@@ -73,7 +89,8 @@ func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer, ve
 	flags.SetOutput(stderr)
 	root := flags.String("project", ".", "project root containing fQL/fql.config")
 	var target *string
-	var check, watch, asJSON bool
+	var check, watch bool
+	flags.BoolVar(&r.JSON, "json", false, "emit structured JSON (one object per watch event)")
 	var against string
 	var auditOptions audit.Options
 	if args[0] == "format" || args[0] == "diff" {
@@ -81,9 +98,6 @@ func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer, ve
 	}
 	if args[0] == "diff" {
 		flags.StringVar(&against, "against", "", "baseline project directory")
-	}
-	if args[0] == "diff" || args[0] == "audit" {
-		flags.BoolVar(&asJSON, "json", false, "structured output without stored document values")
 	}
 	if args[0] == "audit" {
 		flags.StringVar(&auditOptions.ProjectID, "firebase-project", "", "explicit Firebase project ID")
@@ -101,6 +115,7 @@ func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer, ve
 	}
 	if e := flags.Parse(args[1:]); e != nil {
 		if e == flag.ErrHelp {
+			r.quiet = true
 			return 0
 		}
 		return 2
@@ -108,6 +123,9 @@ func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer, ve
 	if flags.NArg() != 0 || check && watch {
 		fmt.Fprintln(stderr, "fql: unexpected arguments or incompatible --check/--watch flags")
 		return 2
+	}
+	if check {
+		r.Mode = "check"
 	}
 	if target != nil && *target != "dart" && *target != "typescript" {
 		fmt.Fprintln(stderr, "fql: supported targets: dart, typescript")
@@ -118,21 +136,51 @@ func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer, ve
 			fmt.Fprintln(stderr, "fql:", e)
 			return 1
 		}
+		r.Target = *target
+		r.Stats["files_created"] = 3
 		return output(stdout, stderr, "Initialized fQL/schemas and fQL/fql.config. Run fql validate, then fql generate.\n")
 	}
 	if args[0] == "format" {
+		p, err := project.Load(*root)
+		if err != nil {
+			fmt.Fprintln(stderr, "fql:", err)
+			return 1
+		}
+		r.project(p)
+		if check {
+			r.Mode = "check"
+		}
 		if e := formatter.Project(*root, check); e != nil {
 			fmt.Fprintln(stderr, "fql:", e)
 			return 1
 		}
+		r.Stats["files_processed"] = p.SourceFiles
 		return output(stdout, stderr, "Schemas are valid and formatted.\n")
 	}
 	if watch {
-		return watchProject(ctx, *root, stdout, stderr)
+		r.streaming = true
+		return watchProject(ctx, *root, r)
 	}
+	started := time.Now()
 	p, e := project.Load(*root)
+	r.Timings["load_validate"] = milliseconds(time.Since(started))
+	if e == nil {
+		r.project(p)
+	}
 	if e == nil && args[0] == "generate" {
+		if check {
+			r.Mode = "check"
+		}
+		started = time.Now()
 		e = generate.Write(p, check)
+		r.Timings["generate"] = milliseconds(time.Since(started))
+		if e == nil {
+			key := "files_generated"
+			if check {
+				key = "files_checked"
+			}
+			r.Stats[key] = 4
+		}
 	}
 	if e != nil {
 		fmt.Fprintln(stderr, "fql:", e)
@@ -150,7 +198,11 @@ func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer, ve
 			return 1
 		}
 		report := evolve.Compare(baseline, p.Schema)
-		if asJSON {
+		r.Stats["changes"] = len(report.Changes)
+		if check {
+			r.Mode = "check"
+		}
+		if r.JSON {
 			if err = json.NewEncoder(stdout).Encode(report); err != nil {
 				return 1
 			}
@@ -170,10 +222,12 @@ func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer, ve
 	if args[0] == "audit" {
 		auditOptions.Token = os.Getenv("FQL_ACCESS_TOKEN")
 		report, err := audit.Run(ctx, p.Schema, auditOptions)
+		r.Stats["documents_scanned"] = report.Scanned
+		r.Stats["invalid_documents"] = len(report.Violations)
 		if err != nil {
 			report.Complete = false
 		}
-		if asJSON {
+		if r.JSON {
 			if e = json.NewEncoder(stdout).Encode(report); e != nil {
 				return 1
 			}
@@ -206,7 +260,7 @@ func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer, ve
 	}
 	return output(stdout, stderr, message)
 }
-func watchProject(ctx context.Context, root string, stdout, stderr io.Writer) int {
+func watchProject(ctx context.Context, root string, session *commandReport) int {
 	ticker := time.NewTicker(300 * time.Millisecond)
 	defer ticker.Stop()
 	lastFingerprint, lastError := "", ""
@@ -214,20 +268,31 @@ func watchProject(ctx context.Context, root string, stdout, stderr io.Writer) in
 		if ctx.Err() != nil {
 			return 0
 		}
+		r := newReport("generate")
+		r.JSON, r.Mode = session.JSON, "watch"
+		started := time.Now()
 		p, e := project.Load(root)
+		r.Timings["load_validate"] = milliseconds(time.Since(started))
 		if e == nil && (p.Fingerprint != lastFingerprint || lastError != "") {
+			r.project(p)
+			started = time.Now()
 			e = generate.Write(p, false)
+			r.Timings["generate"] = milliseconds(time.Since(started))
 			if e == nil {
-				lastFingerprint = p.Fingerprint
-				lastError = ""
-				if output(stdout, stderr, "Generated artifacts; watching for schema changes.\n") != 0 {
+				lastFingerprint, lastError = p.Fingerprint, ""
+				r.Stats["files_generated"] = 4
+				if r.finish(session.stdout, session.stderr, []byte("Generated artifacts; watching for schema changes.\n"), nil, 0) != 0 {
 					return 1
 				}
 			}
 		}
 		if e != nil && e.Error() != lastError {
-			fmt.Fprintln(stderr, "fql:", e)
 			lastError = e.Error()
+			// An error event is recoverable; only output failures end the watch.
+			if r.emit(session.stdout, session.stderr, nil, []byte("fql: "+e.Error()+"\n"), 1) != nil {
+				fmt.Fprintln(session.stderr, "fql: could not write output")
+				return 1
+			}
 		}
 		select {
 		case <-ctx.Done():
@@ -236,6 +301,7 @@ func watchProject(ctx context.Context, root string, stdout, stderr io.Writer) in
 		}
 	}
 }
+
 func output(stdout, stderr io.Writer, message string) int {
 	if _, e := io.WriteString(stdout, message); e != nil {
 		fmt.Fprintln(stderr, "fql: could not write output")

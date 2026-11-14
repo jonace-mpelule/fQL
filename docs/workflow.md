@@ -138,3 +138,37 @@ These local checks make no deployment. They do not establish that your applicati
 | React Native SDK type mismatch | The generated TypeScript client accepts the modular Firebase JS SDK, not `@react-native-firebase/firestore`. JS SDK persistent caching is unavailable there. |
 
 For structured runtime error codes and examples, see [error handling](data-operations.md#handle-errors). For a compiler or generator bug, include the compiler version, target, a minimal synthetic schema, the failing command, and redacted diagnostics. Do not include credentials or real user data.
+
+## Command output and statistics
+
+`init`, `validate`, `generate`, `format`, `diff`, and `audit` print a consistent
+summary with status, relevant counts, and elapsed milliseconds. Generation reports
+schema files, models, declared fields, enums, embedded object types, claims,
+access policies, named policies, composite indexes, and output files. Field counts
+include model fields and named object fields once per declaration, rather than
+expanding each use of an object. Output counts include the client, Rules, index
+configuration, and lockfile: four files, even when their contents are unchanged.
+`generate --check` reports files checked instead of files generated.
+
+```sh
+fql generate
+fql generate --json
+fql validate --json
+fql generate --watch --json
+```
+
+Use `--json` for scripts. Each report contains `command`, `status`, `exit_code`,
+`duration_ms`, and `stats`; `target`, `mode`, `timings_ms`, `message`, and `error`
+are included when applicable. Existing diff/audit report fields remain at the top
+level. In JSON mode diagnostics are included in the report on stdout, without
+additional human output on stderr. Exit codes retain their existing meanings.
+Command help and version retain their conventional text output.
+
+`duration_ms` measures command handling, including project loading and work, but
+excludes process/toolchain startup and printing the final report. Generation also
+reports `load_validate` and `generate` phases in `timings_ms`; the latter includes
+rendering and artifact writing, or freshness comparison in check mode. Timings
+are observations and never enter generated files or compatibility metadata.
+Watch mode emits one report per rebuild or distinct recoverable error, each with
+its own duration; JSON reports are newline-delimited. Idle polls emit nothing.
+Failures report only completed measurements and never claim successful generation.
