@@ -1,0 +1,12 @@
+FQL › generate · TypeScript
+
+✓ Loaded 2 schema files <time>
+✓ Validated 2 models, 10 fields, 8 policies <time>
+✓ Generated 4 files <time>
+
+src/data/fql/fql.ts
+firebase/generated/firestore.rules
+firebase/generated/firestore.indexes.json
+fQL/fql.lock
+
+Done in <time>

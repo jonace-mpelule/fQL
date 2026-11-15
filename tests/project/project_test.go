@@ -321,8 +321,16 @@ func TestWatchRecoversAfterSourceError(t *testing.T) {
 	if !strings.Contains(diagnostics.String(), "expected") {
 		t.Fatalf("missing source error: %s", diagnostics.String())
 	}
-	if strings.Count(out.String(), "watching") < 2 {
+	if strings.Count(out.String(), "Generated 4 files") < 2 {
 		t.Fatalf("watch did not recover: %s", out.String())
+	}
+	if strings.Count(out.String(), "FQL › watching") != 1 {
+		t.Fatalf("watch repeated its header: %s", out.String())
+	}
+	for _, line := range strings.Split(out.String()+diagnostics.String(), "\n") {
+		if strings.HasPrefix(line, " ") || strings.HasPrefix(line, "\t") {
+			t.Fatalf("watch output was indented: %q", line)
+		}
 	}
 }
 

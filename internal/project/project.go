@@ -15,12 +15,14 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 )
 
 type Project struct {
 	Root, Source, Output, Firebase, Fingerprint, Target string
 	Schema                                              schema.Schema
 	SourceFiles                                         int
+	LoadDuration, ValidateDuration                      time.Duration
 }
 
 func Inside(root, path string) bool {
@@ -66,6 +68,7 @@ func read(path string, limit int64) ([]byte, error) {
 	return b, nil
 }
 func Load(root string) (Project, error) {
+	started := time.Now()
 	var p Project
 	abs, e := filepath.Abs(root)
 	if e != nil {
@@ -186,6 +189,8 @@ func Load(root string) (Project, error) {
 	sort.Slice(p.Schema.Models, func(i, j int) bool { return p.Schema.Models[i].Name < p.Schema.Models[j].Name })
 	sort.Slice(p.Schema.Enums, func(i, j int) bool { return p.Schema.Enums[i].Name < p.Schema.Enums[j].Name })
 	sort.Slice(p.Schema.Objects, func(i, j int) bool { return p.Schema.Objects[i].Name < p.Schema.Objects[j].Name })
+	p.LoadDuration = time.Since(started)
+	started = time.Now()
 	p.Schema, e = validate.Schema(p.Schema)
 	if e != nil {
 		return p, e
@@ -196,6 +201,7 @@ func Load(root string) (Project, error) {
 		}
 	}
 	p.Fingerprint = hex.EncodeToString(hash.Sum(nil))
+	p.ValidateDuration = time.Since(started)
 	return p, nil
 }
 

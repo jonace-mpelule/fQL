@@ -1,0 +1,1 @@
+✓ Schema valid · 2 models · 10 fields · <time>

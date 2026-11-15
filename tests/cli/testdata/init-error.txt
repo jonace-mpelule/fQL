@@ -1,0 +1,5 @@
+✗ Initialization failed
+
+supported targets: dart, typescript
+
+Stopped after <time>

@@ -141,14 +141,34 @@ For structured runtime error codes and examples, see [error handling](data-opera
 
 ## Command output and statistics
 
-`init`, `validate`, `generate`, `format`, `diff`, and `audit` print a consistent
-summary with status, relevant counts, and elapsed milliseconds. Generation reports
-schema files, models, declared fields, enums, embedded object types, claims,
-access policies, named policies, composite indexes, and output files. Field counts
-include model fields and named object fields once per declaration, rather than
-expanding each use of an object. Output counts include the client, Rules, index
-configuration, and lockfile: four files, even when their contents are unchanged.
-`generate --check` reports files checked instead of files generated.
+Terminal output is left-aligned, with one result per command. Generation shows
+loading, validation, and generation timings, followed by project-relative output
+paths and total elapsed time. Init lists created files and the next command;
+validation and freshness checks use a single result line. Watch mode prints one
+header and a compact timestamped result for each rebuild. No statistics table or
+zero-value counters are printed in terminal output.
+
+```text
+FQL › generate · TypeScript
+
+✓ Loaded 2 schema files                                      1.8 ms
+✓ Validated 2 models, 10 fields, 8 policies                    0.4 ms
+✓ Generated 4 files                                         21.6 ms
+
+src/data/fql/fql.ts
+firebase/generated/firestore.rules
+firebase/generated/firestore.indexes.json
+fQL/fql.lock
+
+Done in 23.8 ms
+```
+
+Full statistics remain available through `--json`: schema files, models, declared
+fields, enums, embedded object types, claims, policies, indexes, and output files.
+Field counts include model fields and named object fields once per declaration,
+rather than expanding each use of an object. Output counts include the client,
+Rules, index configuration, and lockfile: four files, even when contents are
+unchanged. `generate --check` reports files checked instead of files generated.
 
 ```sh
 fql generate
@@ -166,7 +186,9 @@ Command help and version retain their conventional text output.
 
 `duration_ms` measures command handling, including project loading and work, but
 excludes process/toolchain startup and printing the final report. Generation also
-reports `load_validate` and `generate` phases in `timings_ms`; the latter includes
+reports `load` (configuration, discovery, and parsing), `validate` (semantic and
+target validation), combined `load_validate`, and `generate` phases in
+`timings_ms`; the latter includes
 rendering and artifact writing, or freshness comparison in check mode. Timings
 are observations and never enter generated files or compatibility metadata.
 Watch mode emits one report per rebuild or distinct recoverable error, each with

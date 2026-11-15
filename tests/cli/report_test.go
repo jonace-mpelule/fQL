@@ -93,7 +93,7 @@ func TestReportFailuresAndHumanOutput(t *testing.T) {
 	if code := cli.Run([]string{"generate", "--project", root}, &out, &diagnostics, "test"); code != 0 {
 		t.Fatalf("generate: %s", &diagnostics)
 	}
-	for _, want := range []string{"FQL generate · success", "files generated", "models", "Elapsed", " ms"} {
+	for _, want := range []string{"FQL › generate · Dart", "Generated 4 files", "models", "Done in", " ms"} {
 		if !strings.Contains(out.String(), want) {
 			t.Fatalf("missing %q in %s", want, &out)
 		}
@@ -103,6 +103,14 @@ func TestReportFailuresAndHumanOutput(t *testing.T) {
 	}
 	if err := os.WriteFile(filepath.Join(root, "fQL/schemas/users.fql"), []byte("invalid"), 0600); err != nil {
 		t.Fatal(err)
+	}
+	out.Reset()
+	diagnostics.Reset()
+	if code := cli.Run([]string{"generate", "--project", root}, &out, &diagnostics, "test"); code != 1 {
+		t.Fatalf("malformed schema exit = %d", code)
+	}
+	if out.Len() != 0 || !strings.Contains(diagnostics.String(), "✗ Generation failed") || !strings.Contains(diagnostics.String(), "fQL/schemas/users.fql:1:") || strings.Contains(diagnostics.String(), "Done in") {
+		t.Fatalf("misleading generation failure: stdout=%q stderr=%q", &out, &diagnostics)
 	}
 	result, code = report(t, "generate", "--json", "--project", root)
 	if code != 1 || result["status"] != "error" || result["error"] == nil || result["stats"].(map[string]any)["files_generated"] != nil {

@@ -138,6 +138,7 @@ func runContext(ctx context.Context, args []string, stdout, stderr io.Writer, ve
 		}
 		r.Target = *target
 		r.Stats["files_created"] = 3
+		r.Files = []string{"fQL/fql.config", "fQL/schemas/users.fql", "fQL/schemas/messages.fql"}
 		return output(stdout, stderr, "Initialized fQL/schemas and fQL/fql.config. Run fql validate, then fql generate.\n")
 	}
 	if args[0] == "format" {
@@ -232,7 +233,6 @@ func runContext(ctx context.Context, args []string, stdout, stderr io.Writer, ve
 				return 1
 			}
 		} else {
-			fmt.Fprintf(stdout, "Audit (%s): scanned %d documents; %d invalid; complete=%t\n", report.Environment, report.Scanned, len(report.Violations), report.Complete)
 			for _, v := range report.Violations {
 				for _, issue := range v.Issues {
 					fmt.Fprintf(stdout, "%q %q: %s\n", v.Document, issue.Field, issue.Message)
@@ -264,6 +264,7 @@ func watchProject(ctx context.Context, root string, session *commandReport) int 
 	ticker := time.NewTicker(300 * time.Millisecond)
 	defer ticker.Stop()
 	lastFingerprint, lastError := "", ""
+	announced := false
 	for {
 		if ctx.Err() != nil {
 			return 0
@@ -275,6 +276,12 @@ func watchProject(ctx context.Context, root string, session *commandReport) int 
 		r.Timings["load_validate"] = milliseconds(time.Since(started))
 		if e == nil && (p.Fingerprint != lastFingerprint || lastError != "") {
 			r.project(p)
+			if !session.JSON && !announced {
+				if output(session.stdout, session.stderr, "FQL › watching · "+r.targetName()+"\n\n") != 0 {
+					return 1
+				}
+				announced = true
+			}
 			started = time.Now()
 			e = generate.Write(p, false)
 			r.Timings["generate"] = milliseconds(time.Since(started))

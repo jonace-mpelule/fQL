@@ -1,0 +1,6 @@
+✓ Created fQL/fql.config
+✓ Created fQL/schemas/users.fql
+✓ Created fQL/schemas/messages.fql
+
+Initialized TypeScript project in <time>
+Next: fql generate

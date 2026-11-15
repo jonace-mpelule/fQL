@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"sort"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -19,6 +19,7 @@ type commandReport struct {
 	JSON           bool
 	Stats          map[string]int
 	Timings        map[string]float64
+	Files          []string
 	started        time.Time
 	streaming      bool
 	quiet          bool
@@ -41,6 +42,16 @@ func milliseconds(d time.Duration) float64 { return float64(d.Nanoseconds()) / 1
 
 func (r *commandReport) project(p project.Project) {
 	r.Target = p.Target
+	r.Timings["load"] = milliseconds(p.LoadDuration)
+	r.Timings["validate"] = milliseconds(p.ValidateDuration)
+	client := "fql.dart"
+	if p.Target == "typescript" {
+		client = "fql.ts"
+	}
+	for _, path := range []string{filepath.Join(p.Output, client), filepath.Join(p.Firebase, "firestore.rules"), filepath.Join(p.Firebase, "firestore.indexes.json"), filepath.Join(p.Root, "fQL", "fql.lock")} {
+		rel, _ := filepath.Rel(p.Root, path)
+		r.Files = append(r.Files, filepath.ToSlash(rel))
+	}
 	r.Stats["schema_files"] = p.SourceFiles
 	r.Stats["models"] = len(p.Schema.Models)
 	r.Stats["enums"] = len(p.Schema.Enums)
@@ -106,44 +117,109 @@ func (r *commandReport) emit(stdout, stderr io.Writer, out, diagnostics []byte, 
 		}
 		return json.NewEncoder(stdout).Encode(payload)
 	}
-	if _, err := stdout.Write(out); err != nil {
-		return err
-	}
-	if _, err := stderr.Write(diagnostics); err != nil {
-		return err
-	}
 	if r.quiet {
-		return nil
+		if _, err := stdout.Write(out); err != nil {
+			return err
+		}
+		_, err := stderr.Write(diagnostics)
+		return err
 	}
-	var summary strings.Builder
-	fmt.Fprintf(&summary, "\nFQL %s · %s\n", r.Command, status)
-	if r.Target != "" {
-		fmt.Fprintf(&summary, "  %-20s %s\n", "Target", r.Target)
-	}
-	if r.Mode != "" {
-		fmt.Fprintf(&summary, "  %-20s %s\n", "Mode", r.Mode)
-	}
-	keys := make([]string, 0, len(r.Stats))
-	for key := range r.Stats {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	for _, key := range keys {
-		fmt.Fprintf(&summary, "  %-20s %d\n", strings.ReplaceAll(key, "_", " "), r.Stats[key])
-	}
-	keys = keys[:0]
-	for key := range r.Timings {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	for _, key := range keys {
-		fmt.Fprintf(&summary, "  %-20s %.3f ms\n", strings.ReplaceAll(key, "_", " "), r.Timings[key])
-	}
-	fmt.Fprintf(&summary, "  %-20s %.3f ms\n", "Elapsed", elapsed)
+	text := r.human(out, diagnostics, code, elapsed)
 	writer := stdout
-	if code != 0 {
+	if code == 1 || code == 2 {
 		writer = stderr
 	}
-	_, err := io.WriteString(writer, summary.String())
+	_, err := io.WriteString(writer, text)
 	return err
+}
+
+func (r *commandReport) targetName() string {
+	if r.Target == "typescript" {
+		return "TypeScript"
+	}
+	if r.Target == "dart" {
+		return "Dart"
+	}
+	return r.Target
+}
+
+func (r *commandReport) human(out, diagnostics []byte, code int, elapsed float64) string {
+	var b strings.Builder
+	if r.Mode == "watch" {
+		if code == 0 {
+			fmt.Fprintf(&b, "%s  ✓ Generated %d files · %.1f ms\n", time.Now().Format("15:04:05"), r.Stats["files_generated"], elapsed)
+			return b.String()
+		}
+		fmt.Fprintf(&b, "%s  ✗ Generation failed\n", time.Now().Format("15:04:05"))
+	} else if code == 1 || code == 2 {
+		name := map[string]string{"init": "Initialization", "generate": "Generation", "validate": "Validation", "format": "Formatting", "diff": "Schema comparison", "audit": "Audit"}[r.Command]
+		fmt.Fprintf(&b, "✗ %s failed\n", name)
+	}
+	if code == 1 || code == 2 {
+		if len(diagnostics) > 0 {
+			b.WriteString("\n")
+			b.WriteString(strings.TrimPrefix(strings.TrimSpace(string(diagnostics)), "fql: "))
+			b.WriteString("\n")
+		}
+		if r.Command == "audit" {
+			fmt.Fprintf(&b, "\n%d documents scanned · %d invalid\n", r.Stats["documents_scanned"], r.Stats["invalid_documents"])
+			if len(out) > 0 {
+				fmt.Fprintf(&b, "%s", out)
+			}
+		}
+		fmt.Fprintf(&b, "\nStopped after %.1f ms\n", elapsed)
+		if r.Mode == "watch" {
+			b.WriteString("Watching for changes…\n")
+		}
+		return b.String()
+	}
+	switch r.Command {
+	case "init":
+		for _, file := range r.Files {
+			fmt.Fprintf(&b, "✓ Created %s\n", file)
+		}
+		fmt.Fprintf(&b, "\nInitialized %s project in %.1f ms\nNext: fql generate\n", r.targetName(), elapsed)
+	case "validate":
+		fmt.Fprintf(&b, "✓ Schema valid · %d models · %d fields · %.1f ms\n", r.Stats["models"], r.Stats["fields"], elapsed)
+	case "generate":
+		if r.Mode == "check" {
+			fmt.Fprintf(&b, "✓ Generated files are up to date · %.1f ms\n", elapsed)
+			break
+		}
+		fmt.Fprintf(&b, "FQL › generate · %s\n\n", r.targetName())
+		stage := func(label string, duration float64) { fmt.Fprintf(&b, "%-56s %7.1f ms\n", "✓ "+label, duration) }
+		stage(fmt.Sprintf("Loaded %d schema files", r.Stats["schema_files"]), r.Timings["load"])
+		stage(fmt.Sprintf("Validated %d models, %d fields, %d policies", r.Stats["models"], r.Stats["fields"], r.Stats["access_policies"]), r.Timings["validate"])
+		stage(fmt.Sprintf("Generated %d files", r.Stats["files_generated"]), r.Timings["generate"])
+		b.WriteString("\n")
+		for _, file := range r.Files {
+			fmt.Fprintln(&b, file)
+		}
+		fmt.Fprintf(&b, "\nDone in %.1f ms\n", elapsed)
+	case "format":
+		label := "Formatted"
+		if r.Mode == "check" {
+			label = "Formatting valid for"
+		}
+		fmt.Fprintf(&b, "✓ %s %d schema files · %.1f ms\n", label, r.Stats["files_processed"], elapsed)
+	case "diff":
+		if r.Stats["changes"] == 0 {
+			fmt.Fprintf(&b, "✓ No schema changes · %.1f ms\n", elapsed)
+		} else {
+			fmt.Fprintf(&b, "Schema changes: %d\n\n%s\nCompared in %.1f ms\n", r.Stats["changes"], out, elapsed)
+		}
+	case "audit":
+		mark, label := "✓", "Audit complete"
+		if code == 3 {
+			mark = "✗"
+		}
+		if code == 4 {
+			mark, label = "!", "Audit incomplete"
+		}
+		fmt.Fprintf(&b, "%s %s · %d documents scanned · %d invalid · %.1f ms\n", mark, label, r.Stats["documents_scanned"], r.Stats["invalid_documents"], elapsed)
+		if len(out) > 0 {
+			fmt.Fprintf(&b, "\n%s", out)
+		}
+	}
+	return b.String()
 }
